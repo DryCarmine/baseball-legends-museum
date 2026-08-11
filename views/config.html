@@ -1,61 +1,113 @@
-<div class="config-screen">
+<section class="config-page">
 
+    <!-- Encabezado -->
     <div class="config-header">
+
         <div>
-            <span class="config-kicker">MUSEUM SETTINGS</span>
-            <h1>Configuración</h1>
+            <span class="config-eyebrow">
+                MUSEUM SETTINGS
+            </span>
+
+            <h1>
+                Configuración
+            </h1>
         </div>
 
-        <span class="config-icon">⚙️</span>
+        <div class="config-header-icon">
+            ⚙️
+        </div>
+
     </div>
 
-    <section class="config-card">
 
-        <div class="config-section-title">
-            <span class="section-icon">🎨</span>
+    <!-- =====================================================
+         PERSONALIZACIÓN
+         ===================================================== -->
+
+    <section class="settings-card">
+
+        <div class="settings-card-header">
+
+            <div class="settings-icon">
+                🎨
+            </div>
 
             <div>
-                <h2>Personalización</h2>
-                <p>Haz que el museo se sienta como tuyo.</p>
+                <h2>
+                    Personalización
+                </h2>
+
+                <p>
+                    Haz que el museo se sienta como tuyo.
+                </p>
             </div>
+
         </div>
 
-        <div class="favorite-team-preview">
 
-            <div class="preview-logo-container">
+        <div class="settings-divider"></div>
+
+
+        <!-- =================================================
+             EQUIPO FAVORITO
+             ================================================= -->
+
+        <div class="favorite-team-card">
+
+            <div class="favorite-team-logo-container">
+
                 <img
-                    id="selected-team-preview"
+                    id="selected-team-logo"
                     src=""
-                    alt="Equipo favorito">
+                    alt="Equipo favorito"
+                    class="favorite-team-logo"
+                >
+
             </div>
 
-            <div class="preview-info">
-                <span>MI EQUIPO FAVORITO</span>
-                <strong id="selected-team-name">
+
+            <div class="favorite-team-info">
+
+                <span class="favorite-team-label">
+                    MI EQUIPO FAVORITO
+                </span>
+
+                <h3 id="selected-team-name">
                     Selecciona un equipo
-                </strong>
+                </h3>
+
             </div>
 
         </div>
 
-        <div class="team-selector">
 
-            <h3>Selecciona tu equipo</h3>
+        <!-- =================================================
+             SELECTOR DE EQUIPO
+             ================================================= -->
 
-            <p class="selector-description">
+        <div class="team-selector-header">
+
+            <h2>
+                Selecciona tu equipo
+            </h2>
+
+            <p>
                 El logo seleccionado aparecerá en el menú principal.
             </p>
 
-            <div class="league-label">
-                ⚾ EQUIPOS MLB
-            </div>
+        </div>
 
-            <div id="team-logo-grid" class="team-logo-grid">
-                <!-- JavaScript genera los logos -->
-            </div>
+
+        <!-- Aquí app.js generará los 30 equipos -->
+        <div id="team-logo-grid">
+
+            <!--
+                Los equipos se generan automáticamente
+                desde js/teams.js mediante app.js.
+            -->
 
         </div>
 
     </section>
 
-</div>
+</section>

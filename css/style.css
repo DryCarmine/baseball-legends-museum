@@ -1,564 +1,755 @@
-/* Reseteo y Base */
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Georgia', serif; }
-body { background-color: #2c1e16; /* Color caoba oscuro (madera) */ color: #f5f5dc; /* Blanco hueso/crema */ height: 100vh; overflow: hidden; }
+/* =========================================================
+   BASEBALL LEGENDS MUSEUM
+   Hoja de estilos principal
+   ========================================================= */
 
-/* Contenedor Principal */
-.app-container { display: flex; flex-direction: column; height: 100vh; width: 100vw; }
 
-/* 1. Barra Superior */
+/* =========================================================
+   1. RESETEO Y BASE
+   ========================================================= */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Georgia', serif;
+}
+
+body {
+    background-color: #2c1e16;
+    color: #f5f5dc;
+    height: 100vh;
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   2. CONTENEDOR PRINCIPAL
+   ========================================================= */
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+}
+
+
+/* =========================================================
+   3. BARRA SUPERIOR
+   ========================================================= */
+
 .top-status-bar {
-    background: linear-gradient(to bottom, #0a1128, #101d42); /* Azul marino MLB */
+    background: linear-gradient(to bottom, #0a1128, #101d42);
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0 15px;
-    border-bottom: 3px solid #d4af37; /* Dorado */
+    border-bottom: 3px solid #d4af37;
     height: 60px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
     z-index: 10;
 }
 
-#btn-back { background: none; border: none; color: #d4af37; font-size: 1rem; font-weight: bold; cursor: pointer; }
-.hidden { display: none !important; }
+#btn-back {
+    background: none;
+    border: none;
+    color: #d4af37;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+}
 
-.user-level { display: flex; align-items: center; gap: 8px; }
-.level-badge { background-color: #d4af37; color: #0a1128; padding: 5px 10px; border-radius: 5px; font-weight: bold; font-family: sans-serif; }
-.username { font-weight: bold; letter-spacing: 1px; }
+.hidden {
+    display: none !important;
+}
 
-.stats { display: flex; gap: 10px; font-family: sans-serif; }
-.stat-box { background-color: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 15px; border: 1px solid #d4af37; box-shadow: inset 0 0 5px rgba(0,0,0,0.5); }
+.user-level {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
 
-/* 2. Escenario Central */
+.level-badge {
+    background-color: #d4af37;
+    color: #0a1128;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    font-family: sans-serif;
+}
+
+.username {
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.stats {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: sans-serif;
+}
+
+.stat-box {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 5px 12px;
+    border-radius: 15px;
+    border: 1px solid #d4af37;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+
+/* Botón de configuración */
+
+.config-button {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid #d4af37;
+    border-radius: 50%;
+    color: #f5f5dc;
+    font-size: 1.15rem;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.config-button:hover {
+    background: rgba(212, 175, 55, 0.18);
+    transform: rotate(15deg);
+}
+
+.config-button:active {
+    transform: scale(0.92);
+}
+
+
+/* =========================================================
+   4. ESCENARIO CENTRAL
+   ========================================================= */
+
 .main-stage {
     flex: 1;
     overflow-y: auto;
     padding: 20px 15px;
-    background: radial-gradient(circle, #3e2a1e, #1a120c); /* Fondo que resalta el centro */
+    background: radial-gradient(circle, #3e2a1e, #1a120c);
 }
 
-.screen { display: none; }
-.screen.active { display: flex; flex-direction: column; align-items: center; width: 100%; animation: fadeIn 0.3s ease; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.screen {
+    display: none;
+}
 
-/* Títulos de las secciones */
-.section-title { color: #d4af37; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; text-align: center; border-bottom: 1px solid #d4af37; padding-bottom: 5px; }
-.content-card { background-color: #f5f5dc; color: #1a120c; padding: 20px; border-radius: 10px; width: 100%; border: 2px solid #8b0000; /* Rojo vintage */ box-shadow: 0 4px 8px rgba(0,0,0,0.5); }
+.screen.active {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    animation: fadeIn 0.3s ease;
+}
 
-/* Estilos de la Pantalla de Inicio */
-.showcase-container { width: 100%; margin-bottom: 25px; text-align: center; }
-.showcase-frame { 
-    background-color: #f5f5dc; 
-    padding: 10px; 
-    border-radius: 5px; 
-    border: 2px solid #d4af37; 
-    box-shadow: 0 10px 20px rgba(0,0,0,0.6); 
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* =========================================================
+   5. TÍTULOS Y TARJETAS GENERALES
+   ========================================================= */
+
+.section-title {
+    color: #d4af37;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+    text-align: center;
+    border-bottom: 1px solid #d4af37;
+    padding-bottom: 5px;
+}
+
+.content-card {
+    background-color: #f5f5dc;
+    color: #1a120c;
+    padding: 20px;
+    border-radius: 10px;
+    width: 100%;
+    border: 2px solid #8b0000;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+
+/* =========================================================
+   6. PANTALLA DE INICIO
+   ========================================================= */
+
+.showcase-container {
+    width: 100%;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.showcase-frame {
+    background-color: #f5f5dc;
+    padding: 10px;
+    border-radius: 5px;
+    border: 2px solid #d4af37;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);
     display: inline-block;
     width: 90%;
 }
-.showcase-image { width: 100%; border: 1px solid #333; }
-.showcase-title { margin-top: 15px; font-weight: bold; font-size: 1.2rem; color: #d4af37; font-style: italic; }
 
-/* Botones Grandes de Acción */
-.action-buttons-row { display: flex; justify-content: space-between; width: 100%; gap: 15px; margin-bottom: 25px; }
-.btn-primary, .btn-secondary {
-    flex: 1; padding: 15px 5px; font-size: 1.1rem; font-weight: 900; font-family: sans-serif;
-    border: none; border-radius: 8px; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+.showcase-image {
+    width: 100%;
+    border: 1px solid #333;
+}
+
+.showcase-title {
+    margin-top: 15px;
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: #d4af37;
+    font-style: italic;
+}
+
+
+/* Botones grandes de acción */
+
+.action-buttons-row {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.btn-primary,
+.btn-secondary {
+    flex: 1;
+    padding: 15px 5px;
+    font-size: 1.1rem;
+    font-weight: 900;
+    font-family: sans-serif;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
     transition: transform 0.1s;
 }
-.btn-primary { background: linear-gradient(to bottom, #8b0000, #5c0000); border-bottom: 4px solid #330000; } /* Rojo Liga */
-.btn-secondary { background: linear-gradient(to bottom, #004080, #00264d); border-bottom: 4px solid #001326; } /* Azul Liga */
-.btn-primary:active, .btn-secondary:active { transform: translateY(4px); border-bottom: 0px; margin-top: 4px; }
 
-/* Slots Coleccionables */
-.collection-slots { display: flex; justify-content: space-between; width: 100%; gap: 8px; }
-.slot { flex: 1; height: 70px; background-color: rgba(0,0,0,0.4); border: 2px dashed #664433; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #888; text-transform: uppercase; }
-
-/* 3. Menú de Navegación Inferior */
-.bottom-nav {
-    background: linear-gradient(to top, #0a1128, #101d42);
-    display: flex; justify-content: space-around; padding: 10px 0;
-    border-top: 3px solid #d4af37; padding-bottom: calc(10px + env(safe-area-inset-bottom));
-}
-.nav-item { background: none; border: none; color: #7a8b99; font-size: 0.75rem; text-align: center; font-family: sans-serif; text-transform: uppercase; letter-spacing: 1px; transition: 0.2s all; }
-.nav-item.active { color: #d4af37; transform: scale(1.15); text-shadow: 0 0 5px rgba(212, 175, 55, 0.5); }
-
-/*Trivia estilo teams*/
-.pregunta-card { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #ccc; }
-.opcion { display: block; padding: 10px; margin: 5px 0; background: #eee; border-radius: 5px; cursor: pointer; color: #333; }
-.opcion:hover { background: #ddd; }
-input[type="radio"] { margin-right: 10px; }
-
-/* Estilo base para los botones de la barra inferior */
-.bottom-nav .nav-item {
-    background: transparent;
-    border: none;
-    color: #888; /* Color cuando está inactivo */
-    cursor: pointer;
-    font-size: 12px;
-    transition: all 0.3s ease;
+.btn-primary {
+    background: linear-gradient(to bottom, #8b0000, #5c0000);
+    border-bottom: 4px solid #330000;
 }
 
-/* Efecto cuando el botón está activo (brillo en las letras) */
-.bottom-nav .nav-item.active {
-    color: #ffcc00; /* Color brillante (ej. amarillo oro / dorado béisbol) */
-    text-shadow: 0 0 8px rgba(255, 204, 0, 0.8), 0 0 15px rgba(255, 204, 0, 0.4); /* El "brillo" */
-    transform: translateY(-2px); /* Pequeño levante opcional */
-}
-/* Botón flotante de Configuración estilo HUD (Clash Royale / Videojuego) */
-.main-stage {
-    position: relative; /* Permite posicionar elementos flotantes dentro */
+.btn-secondary {
+    background: linear-gradient(to bottom, #004080, #00264d);
+    border-bottom: 4px solid #001326;
 }
 
-.hud-settings-btn {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background: linear-gradient(to bottom, #d4af37, #aa8c2c);
-    color: #0a1128;
-    border: 2px solid #fff;
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    font-size: 1.2rem;
+.btn-primary:active,
+.btn-secondary:active {
+    transform: translateY(4px);
+    border-bottom: 0;
+    margin-top: 4px;
+}
+
+
+/* Slots coleccionables */
+
+.collection-slots {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    gap: 8px;
+}
+
+.slot {
+    flex: 1;
+    height: 70px;
+    background-color: rgba(0, 0, 0, 0.4);
+    border: 2px dashed #664433;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.6);
-    z-index: 100;
-    transition: transform 0.1s ease;
+    font-size: 0.7rem;
+    color: #888;
+    text-transform: uppercase;
 }
 
-.hud-settings-btn:active {
-    transform: scale(0.90);
-}
 
-/* =========================================
-   CONFIGURACIÓN
-   ========================================= */
+/* =========================================================
+   7. CONFIGURACIÓN
+   ========================================================= */
 
-.config-screen {
-    width: 100%;
-    max-width: 700px;
+.config-page {
+    width: min(100%, 900px);
     margin: 0 auto;
+    padding-bottom: 30px;
+    animation: fadeIn 0.3s ease;
 }
+
+
+/* Encabezado */
 
 .config-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
+    align-items: flex-start;
+    margin-bottom: 18px;
 }
 
-.config-kicker {
+.config-eyebrow {
     display: block;
     color: #d4af37;
     font-family: sans-serif;
     font-size: 0.7rem;
+    font-weight: bold;
     letter-spacing: 2px;
-    margin-bottom: 5px;
+    margin-bottom: 3px;
 }
 
 .config-header h1 {
     color: #f5f5dc;
-    font-size: 1.8rem;
+    font-size: clamp(1.7rem, 5vw, 2.2rem);
+    line-height: 1.1;
 }
 
-.config-icon {
+.config-header-icon {
     font-size: 2rem;
+    opacity: 0.85;
+    padding-top: 4px;
 }
 
-.config-card {
+
+/* Tarjeta principal */
+
+.settings-card {
+    width: 100%;
     background: linear-gradient(
         145deg,
         #f5f5dc,
-        #e8e3c8
+        #e7e4c9
     );
-
     color: #1a120c;
-
     border: 2px solid #d4af37;
     border-radius: 12px;
-
-    padding: 20px;
-
-    box-shadow:
-        0 10px 25px rgba(0,0,0,0.5),
-        inset 0 0 20px rgba(139,0,0,0.08);
+    padding: 18px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.55);
 }
 
-.config-section-title {
+
+/* Cabecera de Personalización */
+
+.settings-card-header {
     display: flex;
     align-items: center;
     gap: 12px;
-
-    padding-bottom: 15px;
-    border-bottom: 1px solid #b49a40;
 }
 
-.section-icon {
-    font-size: 2rem;
-}
-
-.config-section-title h2 {
-    font-size: 1.3rem;
-}
-
-.config-section-title p {
-    font-size: 0.85rem;
-    opacity: 0.7;
-    margin-top: 3px;
-}
-
-
-/* Equipo seleccionado */
-
-.favorite-team-preview {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-
-    margin: 20px 0;
-    padding: 15px;
-
-    background: rgba(10,17,40,0.08);
-    border-radius: 10px;
-
-    border: 1px solid rgba(139,0,0,0.25);
-}
-
-.preview-logo-container {
-    width: 80px;
-    height: 80px;
-
+.settings-icon {
+    width: 38px;
+    height: 38px;
     display: flex;
     align-items: center;
     justify-content: center;
-
-    background: #fffdf0;
-
-    border: 2px solid #d4af37;
-    border-radius: 50%;
-
-    padding: 10px;
+    font-size: 1.45rem;
+    flex-shrink: 0;
 }
 
-.preview-logo-container img {
-    width: 100%;
-    height: 100%;
+.settings-card-header h2 {
+    font-size: 1.35rem;
+    line-height: 1.1;
+}
 
+.settings-card-header p {
+    margin-top: 3px;
+    font-size: 0.82rem;
+    color: #4d4339;
+}
+
+.settings-divider {
+    height: 1px;
+    background: #b8aa76;
+    margin: 15px 0 18px;
+}
+
+
+/* Equipo favorito */
+
+.favorite-team-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    min-height: 84px;
+    padding: 12px;
+    background: rgba(68, 58, 39, 0.09);
+    border: 1px solid #c9b982;
+    border-radius: 9px;
+}
+
+.favorite-team-logo-container {
+    width: 62px;
+    height: 62px;
+    flex-shrink: 0;
+    border: 2px solid #d4af37;
+    border-radius: 50%;
+    background: #fffdf0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.favorite-team-logo {
+    width: 78%;
+    height: 78%;
     object-fit: contain;
 }
 
-.preview-info span {
-    display: block;
-
-    font-family: sans-serif;
-    font-size: 0.65rem;
-    letter-spacing: 1.5px;
-
-    color: #8b0000;
+.favorite-team-info {
+    min-width: 0;
 }
 
-.preview-info strong {
+.favorite-team-label {
     display: block;
-    margin-top: 4px;
-    font-size: 1.1rem;
+    color: #8b0000;
+    font-family: sans-serif;
+    font-size: 0.65rem;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    margin-bottom: 3px;
+}
+
+.favorite-team-info h3 {
+    color: #1a120c;
+    font-size: 1.05rem;
+    line-height: 1.2;
 }
 
 
 /* Selector */
 
-.team-selector h3 {
-    margin-bottom: 4px;
+.team-selector-header {
+    margin: 18px 0 12px;
 }
 
-.selector-description {
-    font-size: 0.8rem;
-    opacity: 0.7;
-    margin-bottom: 15px;
+.team-selector-header h2 {
+    font-size: 1.05rem;
+    color: #1a120c;
 }
 
-.league-label {
+.team-selector-header p {
+    margin-top: 3px;
+    font-size: 0.78rem;
+    color: #5c5145;
+}
+
+
+/* Contenedor generado por app.js */
+
+#team-logo-grid {
+    width: 100%;
+}
+
+
+/* Sección de cada liga */
+
+.team-league-section {
+    width: 100%;
+    margin-top: 18px;
+}
+
+.team-league-section:first-child {
+    margin-top: 0;
+}
+
+.team-league-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     color: #8b0000;
-
     font-family: sans-serif;
-    font-weight: bold;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
+    font-weight: 900;
     letter-spacing: 1.5px;
-
     margin-bottom: 10px;
 }
 
-
-/* Grid de logos */
-
-.team-logo-grid {
-    display: grid;
-
-    grid-template-columns: repeat(
-        3,
-        1fr
-    );
-
-    gap: 10px;
+.team-league-title::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #c5b87d;
 }
 
-.team-logo-option {
+
+/* Grid de equipos */
+
+.team-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 9px;
+}
+
+
+/* Tarjeta / botón de equipo */
+
+.team-option {
     position: relative;
-
+    min-width: 0;
     min-height: 105px;
-
+    padding: 10px 6px 8px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 7px;
 
-    gap: 6px;
-
-    padding: 8px;
-
-    background: #fffdf0;
-
-    border: 2px solid #c8b878;
+    background: #faf8e8;
+    border: 1px solid #c9b982;
     border-radius: 9px;
 
+    color: #1a120c;
     cursor: pointer;
 
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+
     transition:
-        transform 0.15s ease,
-        border-color 0.15s ease,
-        box-shadow 0.15s ease;
-
-    color: #1a120c;
+        transform 0.18s ease,
+        border-color 0.18s ease,
+        box-shadow 0.18s ease,
+        background 0.18s ease;
 }
 
-.team-logo-option:hover {
+.team-option:hover {
     transform: translateY(-2px);
-
     border-color: #d4af37;
-
-    box-shadow:
-        0 5px 10px rgba(0,0,0,0.2);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
 }
 
-.team-logo-option:active {
+.team-option:active {
     transform: scale(0.96);
 }
 
-.team-logo-option img {
-    width: 58px;
-    height: 58px;
 
+/* Logo dentro de cada tarjeta */
+
+.team-option img {
+    width: 54px;
+    height: 54px;
     object-fit: contain;
+    display: block;
 }
 
-.team-logo-option span {
+
+/* Nombre del equipo */
+
+.team-option span {
+    width: 100%;
     font-family: sans-serif;
-
-    font-size: 0.62rem;
+    font-size: 0.65rem;
+    font-weight: bold;
     line-height: 1.1;
-
     text-align: center;
 }
 
 
 /* Equipo seleccionado */
 
-.team-logo-option.selected {
-    border-color: #8b0000;
-
-    background:
-        linear-gradient(
-            145deg,
-            #fff8dc,
-            #eee5c1
-        );
-
+.team-option.selected {
+    background: #fff5c7;
+    border: 2px solid #d4af37;
     box-shadow:
-        0 0 0 2px #d4af37,
-        0 5px 15px rgba(139,0,0,0.3);
+        0 0 0 2px rgba(212, 175, 55, 0.18),
+        0 5px 12px rgba(0, 0, 0, 0.22);
+    transform: translateY(-2px);
 }
 
-.team-logo-option.selected::after {
+.team-option.selected::after {
     content: "✓";
-
     position: absolute;
-
     top: 5px;
     right: 6px;
 
-    width: 20px;
-    height: 20px;
+    width: 19px;
+    height: 19px;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    background: #8b0000;
-    color: white;
+    background: #d4af37;
+    color: #0a1128;
 
     border-radius: 50%;
 
     font-family: sans-serif;
-    font-weight: bold;
     font-size: 0.7rem;
+    font-weight: 900;
 }
 
 
-/* =========================================
-   BOTÓN CONFIGURACIÓN
-   ========================================= */
+/* =========================================================
+   8. NAVEGACIÓN INFERIOR
+   ========================================================= */
 
-.config-button {
-    width: 36px;
-    height: 36px;
+.bottom-nav {
+    background: linear-gradient(to top, #0a1128, #101d42);
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+    border-top: 3px solid #d4af37;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+}
 
-    margin-left: 3px;
-
-    border: 1px solid #d4af37;
-    border-radius: 50%;
-
-    background: rgba(255,255,255,0.08);
-
-    color: #f5f5dc;
-
-    font-size: 1.05rem;
-
+.nav-item {
+    background: transparent;
+    border: none;
+    color: #888;
     cursor: pointer;
-
-    transition:
-        transform 0.2s ease,
-        background 0.2s ease;
-}
-
-.config-button:hover {
-    background: rgba(212,175,55,0.2);
-    transform: rotate(25deg);
-}
-
-
-/* =========================================
-   LOGO EN MENÚ PRINCIPAL
-   ========================================= */
-
-.museum-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    gap: 15px;
-
-    margin-bottom: 20px;
-}
-
-.museum-title {
-    flex: 1;
-}
-
-.museum-kicker {
-    color: #d4af37;
-
-    font-family: sans-serif;
-    font-size: 0.65rem;
-    letter-spacing: 2px;
-}
-
-.museum-title h1 {
-    margin-top: 5px;
-
-    color: #f5f5dc;
-
-    font-size: 1.35rem;
-    line-height: 1.1;
-}
-
-.museum-title p {
-    margin-top: 5px;
-
-    font-size: 0.75rem;
-    opacity: 0.7;
-}
-
-.favorite-team-display {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-
-    min-width: 80px;
-}
-
-.favorite-team-frame {
-    width: 70px;
-    height: 70px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    padding: 8px;
-
-    background: #f5f5dc;
-
-    border: 2px solid #d4af37;
-    border-radius: 50%;
-
-    box-shadow:
-        0 4px 12px rgba(0,0,0,0.5);
-}
-
-.favorite-team-frame img {
-    width: 100%;
-    height: 100%;
-
-    object-fit: contain;
-}
-
-.favorite-team-display span {
-    margin-top: 5px;
-
-    max-width: 85px;
-
-    color: #d4af37;
-
-    font-family: sans-serif;
-    font-size: 0.55rem;
-
+    font-size: 12px;
     text-align: center;
-    line-height: 1.1;
+    font-family: sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+}
+
+.nav-item.active {
+    color: #ffcc00;
+    text-shadow:
+        0 0 8px rgba(255, 204, 0, 0.8),
+        0 0 15px rgba(255, 204, 0, 0.4);
+    transform: translateY(-2px);
 }
 
 
-/* =========================================
-   RESPONSIVE
-   ========================================= */
+/* =========================================================
+   9. TRIVIA
+   ========================================================= */
 
-@media (max-width: 360px) {
+.pregunta-card {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #ccc;
+}
 
-    .team-logo-grid {
-        grid-template-columns: repeat(3, 1fr);
+.opcion {
+    display: block;
+    padding: 10px;
+    margin: 5px 0;
+    background: #eee;
+    border-radius: 5px;
+    cursor: pointer;
+    color: #333;
+}
+
+.opcion:hover {
+    background: #ddd;
+}
+
+input[type="radio"] {
+    margin-right: 10px;
+}
+
+
+/* =========================================================
+   10. RESPONSIVE / TELÉFONO
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+    .top-status-bar {
+        padding: 0 10px;
+        height: 58px;
+    }
+
+    .stats {
         gap: 6px;
     }
 
-    .team-logo-option {
-        min-height: 90px;
+    .stat-box {
+        padding: 5px 8px;
+        font-size: 0.8rem;
     }
 
-    .team-logo-option img {
+    .config-button {
+        width: 34px;
+        height: 34px;
+        font-size: 1rem;
+    }
+
+    .main-stage {
+        padding: 15px 10px;
+    }
+
+    .settings-card {
+        padding: 14px;
+    }
+
+    .team-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .team-option {
+        min-height: 100px;
+    }
+
+    .team-option img {
         width: 48px;
         height: 48px;
     }
 
-    .team-logo-option span {
-        font-size: 0.55rem;
+    .team-option span {
+        font-size: 0.6rem;
     }
 
-    .museum-title h1 {
-        font-size: 1.15rem;
+    .config-header h1 {
+        font-size: 1.65rem;
     }
 
-    .favorite-team-frame {
-        width: 60px;
-        height: 60px;
+}
+
+
+@media (max-width: 390px) {
+
+    .username {
+        font-size: 0.9rem;
     }
+
+    .stat-box {
+        padding: 4px 6px;
+        font-size: 0.72rem;
+    }
+
+    .config-button {
+        width: 32px;
+        height: 32px;
+    }
+
+    .team-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .team-option {
+        min-height: 105px;
+    }
+
+    .team-option img {
+        width: 52px;
+        height: 52px;
+    }
+
 }
