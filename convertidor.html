@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Convertidor de PNG a WebP</title>
+</head>
+<body style="background: #111; color: #fff; font-family: sans-serif; text-align: center; padding: 50px;">
+    <h2>Convertidor de PNG a WebP</h2>
+    <p style="opacity: 0.8; margin-bottom: 20px;">Para no pagarle a Convertio.</p>
+    
+    <input type="file" id="file-input" multiple accept="image/png" style="margin: 20px 0; padding: 10px; background: #222; color: #fff; border: 1px solid #444; border-radius: 5px;"><br>
+    
+    <button id="btn-convertir" style="padding: 12px 25px; background: #e63946; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px;">Convertir y Descargar Todos</button>
+    
+    <p id="status" style="margin-top: 25px; font-weight: bold; color: #ffcc00;"></p>
+
+    <script>
+        document.getElementById('btn-convertir').addEventListener('click', async () => {
+            const fileInput = document.getElementById('file-input');
+            const status = document.getElementById('status');
+
+            if (fileInput.files.length === 0) {
+                alert('Por favor selecciona al menos una imagen PNG.');
+                return;
+            }
+
+            status.innerText = `Procesando 0/${fileInput.files.length}...`;
+
+            for (let i = 0; i < fileInput.files.length; i++) {
+                const file = fileInput.files[i];
+                await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = img.width;
+                            canvas.height = img.height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0);
+
+                            canvas.toBlob((blob) => {
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = file.name.replace(/\.[^/.]+$/, "") + ".webp";
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                                
+                                status.innerText = `Procesando ${i + 1}/${fileInput.files.length}...`;
+                                resolve();
+                            }, 'image/webp', 0.85); // Calidad de compresión (85%)
+                        };
+                        img.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            status.innerText = '¡Conversión y descarga completadas con éxito!';
+        });
+    </script>
+</body>
+</html>
