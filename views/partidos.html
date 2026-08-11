@@ -1,0 +1,31 @@
+<div class="partidos-container">
+
+    <div class="partidos-header">
+        <h2>⚾ Partidos MLB</h2>
+        <p class="partidos-subtitle">Calendario y resultados en tiempo real</p>
+    </div>
+
+    <!-- Selector de fecha -->
+    <div class="partidos-fecha-row">
+        <button class="fecha-nav-btn" id="btn-fecha-anterior">◀</button>
+        <button class="btn-hoy" id="btn-hoy">Hoy</button>
+        <input type="date" id="partidos-fecha" class="fecha-input" />
+        <button class="fecha-nav-btn" id="btn-fecha-siguiente">▶</button>
+    </div>
+
+    <!-- Filtro de liga -->
+    <div class="partidos-filtros">
+        <button class="filtro-btn active" data-liga="all">Todos</button>
+        <button class="filtro-btn" data-liga="AL">Liga Americana</button>
+        <button class="filtro-btn" data-liga="NL">Liga Nacional</button>
+    </div>
+
+    <!-- Lista de partidos -->
+    <div id="partidos-lista" class="partidos-lista">
+        <div class="partidos-loading">
+            <div class="loading-spinner"></div>
+            <p>Cargando partidos...</p>
+        </div>
+    </div>
+
+</div>

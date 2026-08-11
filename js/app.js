@@ -6,6 +6,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     cargarVista('menu');
 
+    // Restaurar tema del equipo favorito guardado
+    const savedTeamId = localStorage.getItem('favoriteTeam');
+    const savedTeam   = MLB_TEAMS.find(t => t.id === savedTeamId);
+    if (savedTeam) aplicarTemaEquipo(savedTeam);
+
     // Configurar navegación inferior
     document.querySelectorAll('.bottom-nav .nav-item[data-vista]').forEach(button => {
         button.addEventListener('click', (e) => {
@@ -78,6 +83,14 @@ async function cargarVista(vista) {
             initLogoFromStorage();
         }
 
+        if (vista === 'trivia' && typeof cargarTrivia === 'function') {
+            cargarTrivia();
+        }
+
+        if (vista === 'partidos' && typeof inicializarPartidos === 'function') {
+            inicializarPartidos();
+        }
+
 
         // -----------------------------------------------------
         // Navegación inferior
@@ -110,18 +123,6 @@ async function cargarVista(vista) {
                 btnBack.classList.remove('hidden');
             }
 
-        }
-
-
-        // -----------------------------------------------------
-        // Trivia
-        // -----------------------------------------------------
-
-        if (
-            vista === 'trivia' &&
-            typeof cargarTrivia === 'function'
-        ) {
-            cargarTrivia();
         }
 
 
@@ -387,6 +388,13 @@ function seleccionarEquipo(team) {
 
 
     // ---------------------------------------------------------
+    // Aplicar tema de colores inmediatamente
+    // ---------------------------------------------------------
+
+    aplicarTemaEquipo(team);
+
+
+    // ---------------------------------------------------------
     // Actualizar selección visual
     // ---------------------------------------------------------
 
@@ -521,19 +529,18 @@ function actualizarEquipoSeleccionado() {
 
 function initLogoFromStorage() {
 
-    const logo = localStorage.getItem(
-        'mainTeamLogo'
-    );
+    const logo   = localStorage.getItem('mainTeamLogo');
+    const teamId = localStorage.getItem('favoriteTeam');
+    const team   = MLB_TEAMS.find(t => t.id === teamId);
 
-    const img = document.getElementById(
-        'main-team-logo'
-    );
-
-
+    const img = document.getElementById('main-team-logo');
     if (img && logo) {
-
         img.src = logo;
+    }
 
+    const titulo = document.getElementById('showcase-team-name');
+    if (titulo && team) {
+        titulo.textContent = team.name;
     }
 }
 
@@ -575,6 +582,41 @@ function setMainTeamLogo(logoPath) {
         img.src = logoPath;
 
     }
+}
+
+
+// =========================================================
+// TEMA DE COLORES POR EQUIPO
+// =========================================================
+
+function aplicarTemaEquipo(team) {
+
+    if (!team?.colors) return;
+
+    const root = document.documentElement;
+
+    root.style.setProperty('--color-primary',        team.colors.primary);
+    root.style.setProperty('--color-secondary',      team.colors.secondary);
+    root.style.setProperty('--color-text',           team.colors.text);
+
+    // Derivados para gradientes y sombras
+    root.style.setProperty('--color-primary-dark',   _darken(team.colors.primary, 20));
+    root.style.setProperty('--color-primary-darker', _darken(team.colors.primary, 40));
+    root.style.setProperty('--color-nav-bg-top',     _darken(team.colors.primary, 55));
+    root.style.setProperty('--color-nav-bg-bottom',  _darken(team.colors.primary, 40));
+}
+
+
+// Utilidad: oscurece un color hex en `amount` puntos (0-255)
+function _darken(hex, amount) {
+
+    const num = parseInt(hex.replace('#', ''), 16);
+
+    const r = Math.max(0, (num >> 16) - amount);
+    const g = Math.max(0, ((num >> 8) & 0xff) - amount);
+    const b = Math.max(0, (num & 0xff) - amount);
+
+    return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
 }
 
 
