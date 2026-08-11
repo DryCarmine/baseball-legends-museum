@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Baseball Legends Museum</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <div id="team-logo-container">
+            <img id="main-team-logo" src="" alt="Logo del equipo favorito">
+        </div>
+        <h1>Baseball Legends Museum</h1>
+        <button id="btn-config" onclick="location.href='views/config.html'">Configuración</button>
+    </header>
+    
+    <div class="app-container">
+
+        <header class="top-status-bar">
+            <button id="btn-back" class="hidden">◀ Volver</button>
+            <div id="user-info" class="user-level">
+                <span class="level-badge">1</span>
+                <span class="username">Novato</span>
+            </div>
+            <div class="stats">
+                <div class="stat-box">⚾ <span id="puntos-trivia">0</span></div>
+                <div class="stat-box">🏆 <span id="trofeos-ar">0/10</span></div>
+            </div>
+        </header>
+
+        <main id="app-content" class="main-stage">
+        </main>
+
+        <!-- Navegación Inferior -->
+        <nav class="bottom-nav">
+            <button class="nav-item" data-vista="historia">📜<br>Historia</button>
+            <button class="nav-item" data-vista="estadisticas">📊<br>Estadísticas</button>
+            <button class="nav-item active" data-vista="menu">⚾<br>Inicio</button>
+            <button class="nav-item" data-vista="trivia">❓<br>Trivia</button>
+            <button class="nav-item" id="btn-ar">📹<br>AR</button>
+        </nav>
+
+    </div>
+
+    <footer class="bottom-bar">
+        <p>&copy; 2026 Baseball Legends Museum</p>
+    </footer>
+
+    <!-- Scripts de la aplicación -->
+    <script src="js/trivia.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
