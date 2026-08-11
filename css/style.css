@@ -104,3 +104,461 @@ input[type="radio"] { margin-right: 10px; }
     text-shadow: 0 0 8px rgba(255, 204, 0, 0.8), 0 0 15px rgba(255, 204, 0, 0.4); /* El "brillo" */
     transform: translateY(-2px); /* Pequeño levante opcional */
 }
+/* Botón flotante de Configuración estilo HUD (Clash Royale / Videojuego) */
+.main-stage {
+    position: relative; /* Permite posicionar elementos flotantes dentro */
+}
+
+.hud-settings-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: linear-gradient(to bottom, #d4af37, #aa8c2c);
+    color: #0a1128;
+    border: 2px solid #fff;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.6);
+    z-index: 100;
+    transition: transform 0.1s ease;
+}
+
+.hud-settings-btn:active {
+    transform: scale(0.90);
+}
+
+/* =========================================
+   CONFIGURACIÓN
+   ========================================= */
+
+.config-screen {
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.config-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.config-kicker {
+    display: block;
+    color: #d4af37;
+    font-family: sans-serif;
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    margin-bottom: 5px;
+}
+
+.config-header h1 {
+    color: #f5f5dc;
+    font-size: 1.8rem;
+}
+
+.config-icon {
+    font-size: 2rem;
+}
+
+.config-card {
+    background: linear-gradient(
+        145deg,
+        #f5f5dc,
+        #e8e3c8
+    );
+
+    color: #1a120c;
+
+    border: 2px solid #d4af37;
+    border-radius: 12px;
+
+    padding: 20px;
+
+    box-shadow:
+        0 10px 25px rgba(0,0,0,0.5),
+        inset 0 0 20px rgba(139,0,0,0.08);
+}
+
+.config-section-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding-bottom: 15px;
+    border-bottom: 1px solid #b49a40;
+}
+
+.section-icon {
+    font-size: 2rem;
+}
+
+.config-section-title h2 {
+    font-size: 1.3rem;
+}
+
+.config-section-title p {
+    font-size: 0.85rem;
+    opacity: 0.7;
+    margin-top: 3px;
+}
+
+
+/* Equipo seleccionado */
+
+.favorite-team-preview {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+
+    margin: 20px 0;
+    padding: 15px;
+
+    background: rgba(10,17,40,0.08);
+    border-radius: 10px;
+
+    border: 1px solid rgba(139,0,0,0.25);
+}
+
+.preview-logo-container {
+    width: 80px;
+    height: 80px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #fffdf0;
+
+    border: 2px solid #d4af37;
+    border-radius: 50%;
+
+    padding: 10px;
+}
+
+.preview-logo-container img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: contain;
+}
+
+.preview-info span {
+    display: block;
+
+    font-family: sans-serif;
+    font-size: 0.65rem;
+    letter-spacing: 1.5px;
+
+    color: #8b0000;
+}
+
+.preview-info strong {
+    display: block;
+    margin-top: 4px;
+    font-size: 1.1rem;
+}
+
+
+/* Selector */
+
+.team-selector h3 {
+    margin-bottom: 4px;
+}
+
+.selector-description {
+    font-size: 0.8rem;
+    opacity: 0.7;
+    margin-bottom: 15px;
+}
+
+.league-label {
+    color: #8b0000;
+
+    font-family: sans-serif;
+    font-weight: bold;
+    font-size: 0.75rem;
+    letter-spacing: 1.5px;
+
+    margin-bottom: 10px;
+}
+
+
+/* Grid de logos */
+
+.team-logo-grid {
+    display: grid;
+
+    grid-template-columns: repeat(
+        3,
+        1fr
+    );
+
+    gap: 10px;
+}
+
+.team-logo-option {
+    position: relative;
+
+    min-height: 105px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    gap: 6px;
+
+    padding: 8px;
+
+    background: #fffdf0;
+
+    border: 2px solid #c8b878;
+    border-radius: 9px;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.15s ease,
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+
+    color: #1a120c;
+}
+
+.team-logo-option:hover {
+    transform: translateY(-2px);
+
+    border-color: #d4af37;
+
+    box-shadow:
+        0 5px 10px rgba(0,0,0,0.2);
+}
+
+.team-logo-option:active {
+    transform: scale(0.96);
+}
+
+.team-logo-option img {
+    width: 58px;
+    height: 58px;
+
+    object-fit: contain;
+}
+
+.team-logo-option span {
+    font-family: sans-serif;
+
+    font-size: 0.62rem;
+    line-height: 1.1;
+
+    text-align: center;
+}
+
+
+/* Equipo seleccionado */
+
+.team-logo-option.selected {
+    border-color: #8b0000;
+
+    background:
+        linear-gradient(
+            145deg,
+            #fff8dc,
+            #eee5c1
+        );
+
+    box-shadow:
+        0 0 0 2px #d4af37,
+        0 5px 15px rgba(139,0,0,0.3);
+}
+
+.team-logo-option.selected::after {
+    content: "✓";
+
+    position: absolute;
+
+    top: 5px;
+    right: 6px;
+
+    width: 20px;
+    height: 20px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #8b0000;
+    color: white;
+
+    border-radius: 50%;
+
+    font-family: sans-serif;
+    font-weight: bold;
+    font-size: 0.7rem;
+}
+
+
+/* =========================================
+   BOTÓN CONFIGURACIÓN
+   ========================================= */
+
+.config-button {
+    width: 36px;
+    height: 36px;
+
+    margin-left: 3px;
+
+    border: 1px solid #d4af37;
+    border-radius: 50%;
+
+    background: rgba(255,255,255,0.08);
+
+    color: #f5f5dc;
+
+    font-size: 1.05rem;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease;
+}
+
+.config-button:hover {
+    background: rgba(212,175,55,0.2);
+    transform: rotate(25deg);
+}
+
+
+/* =========================================
+   LOGO EN MENÚ PRINCIPAL
+   ========================================= */
+
+.museum-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    gap: 15px;
+
+    margin-bottom: 20px;
+}
+
+.museum-title {
+    flex: 1;
+}
+
+.museum-kicker {
+    color: #d4af37;
+
+    font-family: sans-serif;
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+}
+
+.museum-title h1 {
+    margin-top: 5px;
+
+    color: #f5f5dc;
+
+    font-size: 1.35rem;
+    line-height: 1.1;
+}
+
+.museum-title p {
+    margin-top: 5px;
+
+    font-size: 0.75rem;
+    opacity: 0.7;
+}
+
+.favorite-team-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    min-width: 80px;
+}
+
+.favorite-team-frame {
+    width: 70px;
+    height: 70px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 8px;
+
+    background: #f5f5dc;
+
+    border: 2px solid #d4af37;
+    border-radius: 50%;
+
+    box-shadow:
+        0 4px 12px rgba(0,0,0,0.5);
+}
+
+.favorite-team-frame img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: contain;
+}
+
+.favorite-team-display span {
+    margin-top: 5px;
+
+    max-width: 85px;
+
+    color: #d4af37;
+
+    font-family: sans-serif;
+    font-size: 0.55rem;
+
+    text-align: center;
+    line-height: 1.1;
+}
+
+
+/* =========================================
+   RESPONSIVE
+   ========================================= */
+
+@media (max-width: 360px) {
+
+    .team-logo-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+    }
+
+    .team-logo-option {
+        min-height: 90px;
+    }
+
+    .team-logo-option img {
+        width: 48px;
+        height: 48px;
+    }
+
+    .team-logo-option span {
+        font-size: 0.55rem;
+    }
+
+    .museum-title h1 {
+        font-size: 1.15rem;
+    }
+
+    .favorite-team-frame {
+        width: 60px;
+        height: 60px;
+    }
+}

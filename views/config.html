@@ -1,35 +1,61 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Configuración - Personalización</title>
-    <!-- Subimos un nivel con ../ para encontrar css -->
-    <link rel="stylesheet" href="../css/styles.css">
-</head>
-<body>
-    <header>
-        <h1>Configuración y Personalización</h1>
-        <button onclick="location.href='../index.html'">Volver al Menú</button>
-    </header>
+<div class="config-screen">
 
-    <main>
-        <section id="personalization-section">
-            <h2>Personalización</h2>
-            <p>Selecciona el logo de tu equipo favorito:</p>
-            
-            <div class="logo-grid">
-                <button class="logo-option" data-logo="../assets/logos/arizona_diamondbacks.webp">
-                    <img src="../assets/logos/arizona_diamondbacks.webp" alt="Arizona Diamondbacks">
-                </button>
+    <div class="config-header">
+        <div>
+            <span class="config-kicker">MUSEUM SETTINGS</span>
+            <h1>Configuración</h1>
+        </div>
+
+        <span class="config-icon">⚙️</span>
+    </div>
+
+    <section class="config-card">
+
+        <div class="config-section-title">
+            <span class="section-icon">🎨</span>
+
+            <div>
+                <h2>Personalización</h2>
+                <p>Haz que el museo se sienta como tuyo.</p>
             </div>
-        </section>
-    </main>
+        </div>
 
-    <footer class="bottom-bar">
-        <p>&copy; 2026 Baseball Legends Museum</p>
-    </footer>
-    <script src="../js/app.js"></script>
-    <script src="../js/main.js"></script>
-</body>
-</html>
+        <div class="favorite-team-preview">
+
+            <div class="preview-logo-container">
+                <img
+                    id="selected-team-preview"
+                    src=""
+                    alt="Equipo favorito">
+            </div>
+
+            <div class="preview-info">
+                <span>MI EQUIPO FAVORITO</span>
+                <strong id="selected-team-name">
+                    Selecciona un equipo
+                </strong>
+            </div>
+
+        </div>
+
+        <div class="team-selector">
+
+            <h3>Selecciona tu equipo</h3>
+
+            <p class="selector-description">
+                El logo seleccionado aparecerá en el menú principal.
+            </p>
+
+            <div class="league-label">
+                ⚾ EQUIPOS MLB
+            </div>
+
+            <div id="team-logo-grid" class="team-logo-grid">
+                <!-- JavaScript genera los logos -->
+            </div>
+
+        </div>
+
+    </section>
+
+</div>

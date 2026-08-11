@@ -9,19 +9,34 @@
 <body>
     <div class="app-container">
         
-        <!-- Barra Superior -->
         <header class="top-status-bar">
-            <button id="btn-back" class="hidden">◀ Volver</button>
-            <div id="user-info" class="user-level">
-                <span class="level-badge">1</span>
-                <span class="username">Novato</span>
-            </div>
-            <div class="stats">
-                <div class="stat-box">⚾ <span id="puntos-trivia">0</span></div>
-                <div class="stat-box">🏆 <span id="trofeos-ar">0/10</span></div>
-            </div>
-        </header>
 
+    <button id="btn-back" class="hidden">◀ Volver</button>
+
+    <div id="user-info" class="user-level">
+        <span class="level-badge">1</span>
+        <span class="username">Novato</span>
+    </div>
+
+    <div class="stats">
+        <div class="stat-box">
+            ⚾ <span id="puntos-trivia">0</span>
+        </div>
+
+        <div class="stat-box">
+            🏆 <span id="trofeos-ar">0/10</span>
+        </div>
+
+        <button
+            id="btn-config"
+            class="config-button"
+            aria-label="Configuración"
+            title="Configuración">
+            ⚙️
+        </button>
+    </div>
+
+</header>
         <!-- CONTENEDOR DINÁMICO -->
         <main id="app-content" class="main-stage">
             <!-- JavaScript inyectará las vistas aquí -->
@@ -39,7 +54,8 @@
     </div>
 
     <!-- Scripts de la aplicación -->
-    <script src="js/trivia.js"></script>
-    <script src="js/app.js"></script>
+<script src="js/teams.js"></script>
+<script src="js/trivia.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>

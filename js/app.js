@@ -28,6 +28,14 @@ document.addEventListener("DOMContentLoaded", () => {
             abrirAR();
         });
     }
+    // Botón de configuración
+const btnConfig = document.getElementById('btn-config');
+
+if (btnConfig) {
+    btnConfig.addEventListener('click', () => {
+        cargarVista('config');
+    });
+}
 });
 
 // Función central de enrutamiento SPA
