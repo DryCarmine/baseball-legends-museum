@@ -29,18 +29,25 @@
   .stat-val { font-size: 1rem; font-weight: 900; color: #fff; }
 
 .field {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background:
+      linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.55) 100%),
+      url('../assets/images/stadium_bg.jpg') center 65% / cover no-repeat;
+    background-attachment: scroll;
+    -webkit-background-size: cover;
+    background-size: cover;
+  }
 
-  background:
-    linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0.15) 0%,
-      rgba(0, 0, 0, 0.35) 100%
-    ),
-    url('../assets/images/stadium_bg.jpg') center bottom / cover no-repeat;
-}
+  @media (max-width: 480px) {
+    .field {
+      background:
+        linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.6) 100%),
+        url('../assets/images/stadium_bg.jpg') center 65% / cover no-repeat;
+      background-attachment: scroll;
+    }
+  }
 
   .diamond {
     position: absolute;
