@@ -1,0 +1,628 @@
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  #derby-root {
+    background: #0a0a1a;
+    color: #fff;
+    font-family: 'Arial Black', sans-serif;
+    height: calc(100dvh - 120px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .hdr {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    background: rgba(0,0,0,0.6);
+    border-bottom: 2px solid #d4af37;
+    flex-shrink: 0;
+  }
+  .hdr-title { font-size: 1rem; color: #d4af37; letter-spacing: 2px; }
+  .hdr-stats { display: flex; gap: 18px; }
+  .stat { text-align: center; }
+  .stat-lbl { font-size: 0.55rem; color: #888; text-transform: uppercase; letter-spacing: 1px; display: block; }
+  .stat-val { font-size: 1rem; font-weight: 900; color: #fff; }
+
+.field {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.15) 0%,
+      rgba(0, 0, 0, 0.35) 100%
+    ),
+    url('../assets/images/stadium_bg.jpg') center bottom / cover no-repeat;
+}
+
+  .diamond {
+    position: absolute;
+    bottom: 60px;
+    left: 50%;
+    width: 80px;
+    height: 80px;
+    border: 2px solid rgba(255,255,255,0.15);
+    transform: translateX(-50%) rotate(45deg);
+  }
+
+  .field-line { position: absolute; bottom: 0; width: 2px; height: 45%; background: rgba(255,255,255,0.08); transform-origin: bottom center; }
+  .field-line.left  { left: 15%; transform: rotate(30deg); }
+  .field-line.right { right: 15%; transform: rotate(-30deg); }
+
+  .bat-zone {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 260px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .track {
+    width: 100%;
+    height: 8px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 4px;
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+
+  .zone-perfect {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 36px; height: 100%;
+    background: rgba(0,255,80,0.35);
+    border-radius: 4px;
+    border: 1px solid rgba(0,255,80,0.7);
+    box-shadow: 0 0 8px rgba(0,255,80,0.4);
+  }
+
+  .zone-good {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 72px; height: 100%;
+    background: rgba(255,200,0,0.15);
+    border-radius: 4px;
+    border: 1px solid rgba(255,200,0,0.4);
+  }
+
+  #derby-ball {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #fff 0%, #e8e8e8 50%, #ccc 100%);
+    box-shadow: 0 0 8px rgba(255,255,255,0.5), inset 0 1px 2px rgba(255,255,255,0.8);
+    z-index: 10;
+  }
+  #derby-ball::before, #derby-ball::after {
+    content: '';
+    position: absolute;
+    border: 1.5px solid rgba(200,50,50,0.7);
+    border-radius: 50%;
+  }
+  #derby-ball::before { width: 8px; height: 14px; top: 3px; left: 3px; border-right-color: transparent; border-bottom-color: transparent; }
+  #derby-ball::after  { width: 8px; height: 14px; bottom: 3px; right: 3px; border-left-color: transparent; border-top-color: transparent; }
+
+  .batter-svg {
+    position: absolute;
+    bottom: 55px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px; height: 80px;
+    z-index: 5;
+  }
+
+  .zone-labels {
+    position: absolute;
+    bottom: 140px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 4px;
+    font-size: 0.55rem;
+    color: rgba(255,255,255,0.5);
+    white-space: nowrap;
+  }
+  .lbl-perfect { color: #0f0; font-weight: bold; }
+  .lbl-good    { color: #ffd700; }
+
+  .speed-bar {
+    position: absolute;
+    top: 12px; right: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+  }
+  .speed-lbl { font-size: 0.55rem; color: #888; text-transform: uppercase; }
+  .speed-track { width: 60px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+  .speed-fill  { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #0f0, #ffd700, #f00); transition: width 0.3s; }
+
+  #derby-result-flash {
+    position: absolute;
+    top: 30%; left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    font-size: 2rem; font-weight: 900;
+    text-shadow: 0 0 20px currentColor;
+    z-index: 100;
+    pointer-events: none;
+    transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    white-space: nowrap;
+  }
+  #derby-result-flash.show { transform: translate(-50%, -50%) scale(1); }
+
+  #derby-fly-ball {
+    position: absolute;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #fff, #ccc);
+    box-shadow: 0 0 12px rgba(255,255,255,0.8);
+    z-index: 50;
+    pointer-events: none;
+    display: none;
+  }
+
+  .confetti-piece {
+    position: absolute;
+    width: 7px; height: 7px;
+    border-radius: 2px;
+    z-index: 90;
+    pointer-events: none;
+  }
+
+  .swing-wrap {
+    flex-shrink: 0;
+    padding: 10px 16px 14px;
+    background: rgba(0,0,0,0.5);
+    border-top: 1px solid rgba(212,175,55,0.3);
+  }
+  #derby-btn-swing {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #8b0000, #c0392b);
+    border: 2px solid #d4af37;
+    border-radius: 14px;
+    color: #fff;
+    font-size: 1.3rem; font-weight: 900;
+    letter-spacing: 3px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition: transform 0.1s, filter 0.1s;
+  }
+  #derby-btn-swing:active { transform: scale(0.96); filter: brightness(0.85); }
+  #derby-btn-swing:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .trophy-bar {
+    flex-shrink: 0;
+    padding: 8px 12px;
+    background: rgba(0,0,0,0.4);
+    border-top: 1px solid rgba(212,175,55,0.15);
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .trophy-bar::-webkit-scrollbar { display: none; }
+  .trophy-chip {
+    display: flex; flex-direction: column; align-items: center;
+    min-width: 52px; padding: 5px 6px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.03);
+    font-size: 0.55rem; color: #666;
+    text-align: center;
+    transition: all 0.4s;
+    flex-shrink: 0;
+  }
+  .trophy-chip.unlocked {
+    border-color: #d4af37; color: #fff;
+    background: rgba(212,175,55,0.12);
+    box-shadow: 0 0 8px rgba(212,175,55,0.2);
+  }
+  .trophy-chip .t-icon { font-size: 1.3rem; margin-bottom: 2px; }
+
+  #derby-game-over {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.88);
+    z-index: 300;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 16px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.4s;
+  }
+  #derby-game-over.show { opacity: 1; pointer-events: auto; }
+  .go-title { font-size: 2.2rem; color: #d4af37; text-shadow: 0 0 20px #d4af37; }
+  .go-stats { display: flex; gap: 24px; font-size: 1rem; }
+  .go-stat { text-align: center; }
+  .go-stat span { display: block; font-size: 1.6rem; font-weight: 900; color: #d4af37; }
+  .go-stat small { font-size: 0.65rem; color: #888; text-transform: uppercase; }
+  .btn-restart {
+    padding: 12px 32px;
+    background: #8b0000;
+    border: 2px solid #d4af37;
+    border-radius: 10px;
+    color: #fff; font-size: 1rem; font-weight: bold;
+    cursor: pointer; letter-spacing: 1px;
+  }
+
+  .pitch-indicator { position: absolute; top: 12px; left: 12px; font-size: 0.6rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+  .pitch-dots { display: flex; gap: 4px; margin-top: 4px; }
+  .pitch-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); }
+  .pitch-dot.strike { background: #f44; border-color: #f44; }
+  .pitch-dot.hit    { background: #0f0; border-color: #0f0; }
+
+  .derby-trail {
+    position: absolute;
+    top: 50%; transform: translateY(-50%);
+    height: 6px; border-radius: 3px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));
+    pointer-events: none; z-index: 9;
+  }
+</style>
+
+<div id="derby-root">
+
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="hdr-title">⚾ HOME RUN DERBY</div>
+    <div class="hdr-stats">
+      <div class="stat"><span class="stat-lbl">Score</span><span class="stat-val" id="derby-score">0</span></div>
+      <div class="stat"><span class="stat-lbl">HRs</span><span class="stat-val" id="derby-hrs">0</span></div>
+      <div class="stat"><span class="stat-lbl">Mejor</span><span class="stat-val" id="derby-best">0</span></div>
+    </div>
+  </div>
+
+  <!-- CAMPO -->
+  <div class="field" id="derby-field">
+    <div class="field-line left"></div>
+    <div class="field-line right"></div>
+    <div class="diamond"></div>
+
+    <div class="pitch-indicator">
+      Pitches
+      <div class="pitch-dots" id="derby-pitch-dots"></div>
+    </div>
+
+    <div class="speed-bar">
+      <div class="speed-lbl">Velocidad</div>
+      <div class="speed-track"><div class="speed-fill" id="derby-speed-fill" style="width:30%"></div></div>
+    </div>
+
+    <div class="bat-zone">
+      <div class="track" id="derby-track">
+        <div class="zone-good"></div>
+        <div class="zone-perfect"></div>
+        <div class="derby-trail" id="derby-trail"></div>
+        <div id="derby-ball"></div>
+      </div>
+    </div>
+
+    <div class="zone-labels">
+      <span class="lbl-good">Buena ←</span>
+      <span class="lbl-perfect">⚡PERFECTO⚡</span>
+      <span class="lbl-good">→ Buena</span>
+    </div>
+
+    <svg class="batter-svg" id="derby-batter-svg" viewBox="0 0 60 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="30" cy="65" rx="12" ry="14" fill="#1a3a6b"/>
+      <circle cx="30" cy="28" r="12" fill="#f5c5a3"/>
+      <path d="M18 26 Q18 14 30 14 Q42 14 42 26 Z" fill="#1a3a6b"/>
+      <ellipse cx="20" cy="26" rx="4" ry="3" fill="#1a3a6b"/>
+      <line x1="30" y1="42" x2="10" y2="38" stroke="#f5c5a3" stroke-width="4" stroke-linecap="round" id="derby-arm"/>
+      <line x1="10" y1="38" x2="-2" y2="30" stroke="#8B4513" stroke-width="5" stroke-linecap="round" id="derby-bat-line"/>
+      <line x1="24" y1="76" x2="20" y2="80" stroke="#1a3a6b" stroke-width="5" stroke-linecap="round"/>
+      <line x1="36" y1="76" x2="40" y2="80" stroke="#1a3a6b" stroke-width="5" stroke-linecap="round"/>
+      <text x="30" y="68" text-anchor="middle" fill="white" font-size="8" font-weight="bold">42</text>
+    </svg>
+
+    <div id="derby-fly-ball"></div>
+    <div id="derby-result-flash"></div>
+    <div id="derby-game-over">
+      <div class="go-title">⚾ FIN DEL JUEGO</div>
+      <div class="go-stats">
+        <div class="go-stat"><span id="derby-go-score">0</span><small>Score</small></div>
+        <div class="go-stat"><span id="derby-go-hrs">0</span><small>Home Runs</small></div>
+        <div class="go-stat"><span id="derby-go-hits">0</span><small>Hits</small></div>
+      </div>
+      <button class="btn-restart" id="derby-btn-restart">🔄 JUGAR DE NUEVO</button>
+    </div>
+  </div>
+
+  <!-- BOTÓN -->
+  <div class="swing-wrap">
+    <button id="derby-btn-swing">🏏 BATEAR</button>
+  </div>
+
+  <!-- TROFEOS -->
+  <div class="trophy-bar" id="derby-trophy-bar"></div>
+
+</div>
+
+<script>
+(function() {
+  const TOTAL_PITCHES = 10;
+  const TRACK_PADDING = 11;
+
+  const TROPHIES = [
+    { id: 'first_hit',  icon: '⚾', name: 'Primer Hit',    check: s => s.totalHits >= 1 },
+    { id: 'hr_1',       icon: '🥉', name: 'Bate Bronce',   check: s => s.totalHRs >= 1 },
+    { id: 'hr_3',       icon: '🥈', name: 'Bate Plata',    check: s => s.totalHRs >= 3 },
+    { id: 'hr_5',       icon: '🥇', name: 'Bate Oro',      check: s => s.totalHRs >= 5 },
+    { id: 'hr_10',      icon: '💎', name: 'Diamante',      check: s => s.totalHRs >= 10 },
+    { id: 'perfect_3',  icon: '🎯', name: 'Francotirador', check: s => s.sessionPerfects >= 3 },
+    { id: 'score_200',  icon: '🌟', name: 'Estrella',      check: s => s.totalScore >= 200 },
+    { id: 'legendary',  icon: '👑', name: 'Legendario',    check: s => s.totalHRs >= 25 },
+  ];
+
+  let state = {
+    score: 0, sessionHRs: 0, sessionHits: 0, sessionPerfects: 0,
+    pitchNum: 0, pitchResults: [],
+    totalHRs: 0, totalHits: 0, totalScore: 0, bestScore: 0, unlocked: [],
+  };
+
+  let ballX = 0, ballDir = 1, ballSpeed = 0.004;
+  let animId = null, canSwing = false, swingDone = false;
+
+  function loadSave() {
+    try {
+      const d = JSON.parse(localStorage.getItem('blm_derby2') || '{}');
+      state.totalHRs   = d.totalHRs   || 0;
+      state.totalHits  = d.totalHits  || 0;
+      state.totalScore = d.totalScore || 0;
+      state.bestScore  = d.bestScore  || 0;
+      state.unlocked   = d.unlocked   || [];
+    } catch(e) {}
+  }
+
+  function save() {
+    localStorage.setItem('blm_derby2', JSON.stringify({
+      totalHRs: state.totalHRs, totalHits: state.totalHits,
+      totalScore: state.totalScore, bestScore: state.bestScore,
+      unlocked: state.unlocked,
+    }));
+  }
+
+  function init() {
+    loadSave();
+    renderTrophies();
+    renderPitchDots();
+    updateHUD();
+    nextPitch();
+
+    const btn = document.getElementById('derby-btn-swing');
+    btn.addEventListener('touchstart', swing, { passive: false });
+    btn.addEventListener('click', swing);
+
+    document.getElementById('derby-btn-restart').addEventListener('click', restartGame);
+  }
+
+  function nextPitch() {
+    if (state.pitchNum >= TOTAL_PITCHES) { gameOver(); return; }
+    swingDone = false; canSwing = false;
+    const progress = state.pitchNum / TOTAL_PITCHES;
+    ballSpeed = 0.003 + progress * 0.004 + Math.random() * 0.002;
+    const pct = Math.min(100, Math.round((ballSpeed / 0.009) * 100));
+    document.getElementById('derby-speed-fill').style.width = pct + '%';
+    ballDir = Math.random() > 0.5 ? 1 : -1;
+    ballX   = ballDir === 1 ? 0 : 1;
+    setTimeout(() => {
+      canSwing = true;
+      document.getElementById('derby-btn-swing').disabled = false;
+      animateBall();
+    }, 400);
+  }
+
+  function animateBall() {
+    if (swingDone) return;
+    ballX += ballDir * ballSpeed;
+    if (ballX >= 1) { ballX = 1; ballDir = -1; }
+    if (ballX <= 0) { ballX = 0; ballDir =  1; }
+    renderBall();
+    animId = requestAnimationFrame(animateBall);
+  }
+
+  function renderBall() {
+    const track = document.getElementById('derby-track');
+    const ball  = document.getElementById('derby-ball');
+    const trail = document.getElementById('derby-trail');
+    const trackW = track.clientWidth - TRACK_PADDING * 2;
+    const px = TRACK_PADDING + ballX * trackW;
+    ball.style.left = (px - 11) + 'px';
+    if (ballDir === 1) {
+      trail.style.left  = Math.max(0, px - 40) + 'px';
+      trail.style.width = Math.min(40, px) + 'px';
+    } else {
+      trail.style.left  = px + 'px';
+      trail.style.width = Math.min(40, (trackW + TRACK_PADDING) - px) + 'px';
+    }
+  }
+
+  function swing(e) {
+    e.preventDefault();
+    if (!canSwing || swingDone) return;
+    swingDone = true; canSwing = false;
+    cancelAnimationFrame(animId);
+    document.getElementById('derby-btn-swing').disabled = true;
+    const distFromCenter = Math.abs(ballX - 0.5) * 2;
+    const accuracy = 1 - distFromCenter;
+    evaluateSwing(accuracy);
+  }
+
+  function evaluateSwing(accuracy) {
+    state.pitchNum++;
+    let result;
+    if      (accuracy >= 0.85) result = { type: 'HOME RUN!', pts: 100, color: '#d4af37', emoji: '🔥', outcome: 'hit', isHR: true,  isPerfect: true };
+    else if (accuracy >= 0.70) result = { type: 'TRIPLE!',   pts: 60,  color: '#4da6ff', emoji: '⚡', outcome: 'hit', isHR: false };
+    else if (accuracy >= 0.55) result = { type: 'DOBLE!',    pts: 40,  color: '#66ff66', emoji: '🏃', outcome: 'hit', isHR: false };
+    else if (accuracy >= 0.38) result = { type: 'SENCILLO!', pts: 20,  color: '#ffffff', emoji: '👆', outcome: 'hit', isHR: false };
+    else if (accuracy >= 0.20) result = { type: 'FOUL',      pts: 5,   color: '#ffaa00', emoji: '🌀', outcome: 'hit', isHR: false };
+    else                       result = { type: 'STRIKE!',   pts: 0,   color: '#ff4444', emoji: '❌', outcome: 'strike', isHR: false };
+
+    state.score += result.pts;
+    state.totalScore += result.pts;
+    if (result.outcome === 'hit') { state.sessionHits++; state.totalHits++; }
+    if (result.isHR)  { state.sessionHRs++; state.totalHRs++; }
+    if (result.isPerfect) state.sessionPerfects++;
+    state.pitchResults.push(result.outcome);
+
+    animateBatter();
+    showResultFlash(result);
+    if (result.outcome === 'hit') launchFlyBall(result.isHR);
+    if (result.isHR) spawnConfetti();
+
+    updateHUD();
+    renderPitchDots();
+    checkTrophies();
+
+    setTimeout(() => {
+      hideResultFlash();
+      nextPitch();
+    }, result.isHR ? 1800 : 1200);
+  }
+
+  function animateBatter() {
+    const arm = document.getElementById('derby-arm');
+    const bat = document.getElementById('derby-bat-line');
+    arm.style.transition = 'all 0.15s ease-out';
+    bat.style.transition = 'all 0.15s ease-out';
+    arm.setAttribute('x2', '50'); arm.setAttribute('y2', '30');
+    bat.setAttribute('x1', '50'); bat.setAttribute('y1', '30');
+    bat.setAttribute('x2', '65'); bat.setAttribute('y2', '20');
+    setTimeout(() => {
+      arm.style.transition = 'all 0.3s ease-in';
+      bat.style.transition = 'all 0.3s ease-in';
+      arm.setAttribute('x2', '10'); arm.setAttribute('y2', '38');
+      bat.setAttribute('x1', '10'); bat.setAttribute('y1', '38');
+      bat.setAttribute('x2', '-2'); bat.setAttribute('y2', '30');
+    }, 200);
+  }
+
+  function launchFlyBall(isHR) {
+    const field   = document.getElementById('derby-field');
+    const flyBall = document.getElementById('derby-fly-ball');
+    const track   = document.getElementById('derby-track');
+    const rect    = track.getBoundingClientRect();
+    const fRect   = field.getBoundingClientRect();
+    const startX  = rect.left - fRect.left + rect.width * ballX;
+    const startY  = rect.top  - fRect.top;
+    flyBall.style.cssText = `display:block;left:${startX}px;top:${startY}px;opacity:1;transform:scale(1);transition:none;`;
+    flyBall.offsetHeight;
+    const dist  = isHR ? 280 : 160 + Math.random() * 80;
+    const angle = -(50 + Math.random() * 30);
+    const rad   = angle * Math.PI / 180;
+    const dx    = Math.cos(rad) * dist * (Math.random() > 0.5 ? 1 : -1);
+    const dy    = Math.sin(rad) * dist;
+    flyBall.style.transition = `all ${isHR ? 1.2 : 0.8}s cubic-bezier(0.25,0.46,0.45,0.94)`;
+    flyBall.style.transform  = `translate(${dx}px,${dy}px) scale(${isHR ? 0.3 : 0.5})`;
+    flyBall.style.opacity    = '0';
+    setTimeout(() => { flyBall.style.display = 'none'; }, isHR ? 1200 : 800);
+  }
+
+  function spawnConfetti() {
+    const field  = document.getElementById('derby-field');
+    const colors = ['#d4af37','#fff','#0f0','#4da6ff','#ff4444','#ff69b4'];
+    for (let i = 0; i < 40; i++) {
+      const p = document.createElement('div');
+      p.className = 'confetti-piece';
+      p.style.cssText = `background:${colors[i%colors.length]};left:50%;top:40%;position:absolute;transition:all ${0.6+Math.random()*0.6}s ease-out;transform:translate(-50%,-50%);`;
+      field.appendChild(p);
+      const angle = Math.random() * Math.PI * 2;
+      const dist  = 60 + Math.random() * 180;
+      requestAnimationFrame(() => {
+        p.style.transform = `translate(calc(-50% + ${Math.cos(angle)*dist}px),calc(-50% + ${Math.sin(angle)*dist}px)) rotate(${Math.random()*360}deg)`;
+        p.style.opacity = '0';
+      });
+      setTimeout(() => p.remove(), 1200);
+    }
+  }
+
+  function showResultFlash(result) {
+    const el = document.getElementById('derby-result-flash');
+    el.textContent = result.emoji + ' ' + result.type;
+    el.style.color = result.color;
+    el.classList.add('show');
+  }
+  function hideResultFlash() {
+    document.getElementById('derby-result-flash').classList.remove('show');
+  }
+
+  function updateHUD() {
+    document.getElementById('derby-score').textContent = state.score;
+    document.getElementById('derby-hrs').textContent   = state.sessionHRs;
+    document.getElementById('derby-best').textContent  = Math.max(state.bestScore, state.score);
+  }
+
+  function renderPitchDots() {
+    const container = document.getElementById('derby-pitch-dots');
+    container.innerHTML = '';
+    for (let i = 0; i < TOTAL_PITCHES; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'pitch-dot' + (i < state.pitchResults.length ? ' ' + state.pitchResults[i] : '');
+      container.appendChild(dot);
+    }
+  }
+
+  function checkTrophies() {
+    let changed = false;
+    TROPHIES.forEach(t => {
+      if (!state.unlocked.includes(t.id) && t.check(state)) {
+        state.unlocked.push(t.id);
+        changed = true;
+      }
+    });
+    if (changed) { save(); renderTrophies(); }
+  }
+
+  function renderTrophies() {
+    const bar = document.getElementById('derby-trophy-bar');
+    bar.innerHTML = '';
+    TROPHIES.forEach(t => {
+      const unlocked = state.unlocked.includes(t.id);
+      const chip = document.createElement('div');
+      chip.className = 'trophy-chip' + (unlocked ? ' unlocked' : '');
+      chip.innerHTML = `<div class="t-icon">${unlocked ? t.icon : '🔒'}</div><div>${t.name}</div>`;
+      bar.appendChild(chip);
+    });
+  }
+
+  function gameOver() {
+    if (state.score > state.bestScore) state.bestScore = state.score;
+    save();
+    document.getElementById('derby-go-score').textContent = state.score;
+    document.getElementById('derby-go-hrs').textContent   = state.sessionHRs;
+    document.getElementById('derby-go-hits').textContent  = state.sessionHits;
+    document.getElementById('derby-game-over').classList.add('show');
+  }
+
+  function restartGame() {
+    cancelAnimationFrame(animId);
+    state.score = 0; state.sessionHRs = 0; state.sessionHits = 0;
+    state.sessionPerfects = 0; state.pitchNum = 0; state.pitchResults = [];
+    document.getElementById('derby-game-over').classList.remove('show');
+    document.getElementById('derby-btn-swing').disabled = false;
+    document.getElementById('derby-trail').style.width = '0';
+    updateHUD();
+    renderPitchDots();
+    nextPitch();
+  }
+
+  init();
+})();
+</script>

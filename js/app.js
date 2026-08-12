@@ -68,7 +68,18 @@ async function cargarVista(vista) {
 
         const html = await response.text();
 
-        document.getElementById('app-content').innerHTML = html;
+        const contenedor = document.getElementById('app-content');
+        contenedor.innerHTML = html;
+
+        // Ejecutar scripts inyectados dinámicamente (necesario para el minijuego y otras vistas)
+        contenedor.querySelectorAll('script').forEach(oldScript => {
+            const newScript = document.createElement('script');
+            [...oldScript.attributes].forEach(attr =>
+                newScript.setAttribute(attr.name, attr.value)
+            );
+            newScript.textContent = oldScript.textContent;
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+        });
 
 
         // -----------------------------------------------------
@@ -191,25 +202,17 @@ async function cargarVista(vista) {
 
 function inicializarConfiguracion() {
 
-    // Verificar que teams.js esté disponible
     if (
         typeof MLB_TEAMS === 'undefined' ||
         !Array.isArray(MLB_TEAMS)
     ) {
-
         console.error(
             'MLB_TEAMS no está disponible. Verifica que teams.js se cargue antes de app.js.'
         );
-
         return;
     }
 
-
-    // Renderizar los equipos
     renderizarEquipos();
-
-
-    // Mostrar el equipo actualmente guardado
     actualizarEquipoSeleccionado();
 }
 
@@ -223,45 +226,17 @@ function renderizarEquipos() {
     const contenedor = document.getElementById('team-logo-grid');
 
     if (!contenedor) {
-        console.warn(
-            'No se encontró #team-logo-grid en la vista de configuración.'
-        );
-
+        console.warn('No se encontró #team-logo-grid en la vista de configuración.');
         return;
     }
 
-
-    // Limpiar el contenedor
     contenedor.innerHTML = '';
 
+    const ligaAmericana = MLB_TEAMS.filter(team => team.league === 'American');
+    const ligaNacional  = MLB_TEAMS.filter(team => team.league === 'National');
 
-    // ---------------------------------------------------------
-    // Separar por liga
-    // ---------------------------------------------------------
-
-    const ligaAmericana = MLB_TEAMS.filter(
-        team => team.league === 'American'
-    );
-
-    const ligaNacional = MLB_TEAMS.filter(
-        team => team.league === 'National'
-    );
-
-
-    // Crear sección Americana
-    crearSeccionLiga(
-        contenedor,
-        'LIGA AMERICANA',
-        ligaAmericana
-    );
-
-
-    // Crear sección Nacional
-    crearSeccionLiga(
-        contenedor,
-        'LIGA NACIONAL',
-        ligaNacional
-    );
+    crearSeccionLiga(contenedor, 'LIGA AMERICANA', ligaAmericana);
+    crearSeccionLiga(contenedor, 'LIGA NACIONAL',  ligaNacional);
 }
 
 
@@ -271,76 +246,43 @@ function renderizarEquipos() {
 
 function crearSeccionLiga(contenedor, titulo, equipos) {
 
-    const seccion = document.createElement('section');
-
+    const seccion    = document.createElement('section');
     seccion.className = 'team-league-section';
 
-
-    // Título de la liga
-    const encabezado = document.createElement('h3');
-
+    const encabezado    = document.createElement('h3');
     encabezado.className = 'team-league-title';
-
     encabezado.textContent = titulo;
 
-
-    // Grid
-    const grid = document.createElement('div');
-
+    const grid    = document.createElement('div');
     grid.className = 'team-grid';
 
-
-    // Crear cada equipo
     equipos.forEach(team => {
 
-        const boton = document.createElement('button');
-
-        boton.type = 'button';
-
+        const boton    = document.createElement('button');
+        boton.type      = 'button';
         boton.className = 'team-option';
-
         boton.dataset.teamId = team.id;
 
-
-        // Logo
-        const imagen = document.createElement('img');
-
-        imagen.src = team.logo;
-
-        imagen.alt = `Logo de ${team.name}`;
-
+        const imagen  = document.createElement('img');
+        imagen.src     = team.logo;
+        imagen.alt     = `Logo de ${team.name}`;
         imagen.loading = 'lazy';
 
+        const nombre       = document.createElement('span');
+        nombre.textContent  = team.name;
 
-        // Nombre
-        const nombre = document.createElement('span');
-
-        nombre.textContent = team.name;
-
-
-        // Construcción
         boton.appendChild(imagen);
-
         boton.appendChild(nombre);
 
-
-        // Evento
         boton.addEventListener('click', () => {
-
             seleccionarEquipo(team);
-
         });
 
-
         grid.appendChild(boton);
-
     });
 
-
     seccion.appendChild(encabezado);
-
     seccion.appendChild(grid);
-
     contenedor.appendChild(seccion);
 }
 
@@ -351,93 +293,31 @@ function crearSeccionLiga(contenedor, titulo, equipos) {
 
 function seleccionarEquipo(team) {
 
-    if (!team) {
-        return;
-    }
-
-
-    // ---------------------------------------------------------
-    // Guardar información
-    // ---------------------------------------------------------
+    if (!team) return;
 
     try {
-
-        localStorage.setItem(
-            'favoriteTeam',
-            team.id
-        );
-
-        localStorage.setItem(
-            'favoriteTeamName',
-            team.name
-        );
-
-        localStorage.setItem(
-            'mainTeamLogo',
-            team.logo
-        );
-
+        localStorage.setItem('favoriteTeam',     team.id);
+        localStorage.setItem('favoriteTeamName', team.name);
+        localStorage.setItem('mainTeamLogo',     team.logo);
     } catch (error) {
-
-        console.warn(
-            'No se pudo guardar el equipo favorito.',
-            error
-        );
-
+        console.warn('No se pudo guardar el equipo favorito.', error);
     }
-
-
-    // ---------------------------------------------------------
-    // Aplicar tema de colores inmediatamente
-    // ---------------------------------------------------------
 
     aplicarTemaEquipo(team);
 
-
-    // ---------------------------------------------------------
-    // Actualizar selección visual
-    // ---------------------------------------------------------
-
-    document
-        .querySelectorAll('.team-option')
-        .forEach(button => {
-
-            button.classList.remove('selected');
-
-        });
-
+    document.querySelectorAll('.team-option').forEach(button => {
+        button.classList.remove('selected');
+    });
 
     const botonSeleccionado = document.querySelector(
         `.team-option[data-team-id="${team.id}"]`
     );
-
-    if (botonSeleccionado) {
-
-        botonSeleccionado.classList.add('selected');
-
-    }
-
-
-    // ---------------------------------------------------------
-    // Actualizar tarjeta superior
-    // ---------------------------------------------------------
+    if (botonSeleccionado) botonSeleccionado.classList.add('selected');
 
     actualizarEquipoSeleccionado();
 
-
-    // ---------------------------------------------------------
-    // Actualizar logo si el elemento existe
-    // ---------------------------------------------------------
-
-    const logoPrincipal = document.getElementById(
-        'main-team-logo'
-    );
-
-    if (logoPrincipal) {
-
-        logoPrincipal.src = team.logo;
-
-    }
+    const logoPrincipal = document.getElementById('main-team-logo');
+    if (logoPrincipal) logoPrincipal.src = team.logo;
 }
 
 
@@ -447,79 +327,27 @@ function seleccionarEquipo(team) {
 
 function actualizarEquipoSeleccionado() {
 
-    const teamId = localStorage.getItem(
-        'favoriteTeam'
-    );
+    const teamId = localStorage.getItem('favoriteTeam');
+    const team   = MLB_TEAMS.find(item => item.id === teamId);
 
-    const team = MLB_TEAMS.find(
-        item => item.id === teamId
-    );
-
-
-    // No hay equipo seleccionado
     if (!team) {
-
-        const nombre = document.getElementById(
-            'selected-team-name'
-        );
-
-        if (nombre) {
-            nombre.textContent = 'Selecciona un equipo';
-        }
-
+        const nombre = document.getElementById('selected-team-name');
+        if (nombre) nombre.textContent = 'Selecciona un equipo';
         return;
     }
 
+    const nombre = document.getElementById('selected-team-name');
+    if (nombre) nombre.textContent = team.name;
 
-    // Nombre
-    const nombre = document.getElementById(
-        'selected-team-name'
-    );
+    const logo = document.getElementById('selected-team-logo');
+    if (logo) { logo.src = team.logo; logo.alt = `Logo de ${team.name}`; }
 
-    if (nombre) {
+    const id = document.getElementById('selected-team-id');
+    if (id) id.textContent = team.id;
 
-        nombre.textContent = team.name;
-
-    }
-
-
-    // Logo
-    const logo = document.getElementById(
-        'selected-team-logo'
-    );
-
-    if (logo) {
-
-        logo.src = team.logo;
-
-        logo.alt = `Logo de ${team.name}`;
-
-    }
-
-
-    // ID
-    const id = document.getElementById(
-        'selected-team-id'
-    );
-
-    if (id) {
-
-        id.textContent = team.id;
-
-    }
-
-
-    // Marcar equipo seleccionado
-    document
-        .querySelectorAll('.team-option')
-        .forEach(button => {
-
-            button.classList.toggle(
-                'selected',
-                button.dataset.teamId === team.id
-            );
-
-        });
+    document.querySelectorAll('.team-option').forEach(button => {
+        button.classList.toggle('selected', button.dataset.teamId === team.id);
+    });
 }
 
 
@@ -534,14 +362,10 @@ function initLogoFromStorage() {
     const team   = MLB_TEAMS.find(t => t.id === teamId);
 
     const img = document.getElementById('main-team-logo');
-    if (img && logo) {
-        img.src = logo;
-    }
+    if (img && logo) img.src = logo;
 
     const titulo = document.getElementById('showcase-team-name');
-    if (titulo && team) {
-        titulo.textContent = team.name;
-    }
+    if (titulo && team) titulo.textContent = team.name;
 }
 
 
@@ -551,37 +375,16 @@ function initLogoFromStorage() {
 
 function setMainTeamLogo(logoPath) {
 
-    if (!logoPath) {
-        return;
-    }
-
+    if (!logoPath) return;
 
     try {
-
-        localStorage.setItem(
-            'mainTeamLogo',
-            logoPath
-        );
-
+        localStorage.setItem('mainTeamLogo', logoPath);
     } catch (error) {
-
-        console.warn(
-            'No se pudo guardar el logo en localStorage.',
-            error
-        );
-
+        console.warn('No se pudo guardar el logo en localStorage.', error);
     }
 
-
-    const img = document.getElementById(
-        'main-team-logo'
-    );
-
-    if (img) {
-
-        img.src = logoPath;
-
-    }
+    const img = document.getElementById('main-team-logo');
+    if (img) img.src = logoPath;
 }
 
 
@@ -598,23 +401,18 @@ function aplicarTemaEquipo(team) {
     root.style.setProperty('--color-primary',        team.colors.primary);
     root.style.setProperty('--color-secondary',      team.colors.secondary);
     root.style.setProperty('--color-text',           team.colors.text);
-
-    // Derivados para gradientes y sombras
     root.style.setProperty('--color-primary-dark',   _darken(team.colors.primary, 20));
     root.style.setProperty('--color-primary-darker', _darken(team.colors.primary, 40));
     root.style.setProperty('--color-nav-bg-top',     _darken(team.colors.primary, 55));
     root.style.setProperty('--color-nav-bg-bottom',  _darken(team.colors.primary, 40));
 }
 
-
-// Utilidad: oscurece un color hex en `amount` puntos (0-255)
 function _darken(hex, amount) {
 
     const num = parseInt(hex.replace('#', ''), 16);
-
-    const r = Math.max(0, (num >> 16) - amount);
-    const g = Math.max(0, ((num >> 8) & 0xff) - amount);
-    const b = Math.max(0, (num & 0xff) - amount);
+    const r   = Math.max(0, (num >> 16) - amount);
+    const g   = Math.max(0, ((num >> 8) & 0xff) - amount);
+    const b   = Math.max(0, (num & 0xff) - amount);
 
     return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
 }
@@ -627,7 +425,6 @@ function _darken(hex, amount) {
 function abrirAR() {
 
     document.getElementById('app-content').innerHTML = `
-
         <div style="
             padding: 20px;
             text-align: center;
@@ -638,15 +435,8 @@ function abrirAR() {
             justify-content: center;
             align-items: center;
         ">
-
-            <h3>
-                Cámara / Entorno AR Activo
-            </h3>
-
-            <p>
-                Espacio reservado para el visor de Realidad Aumentada.
-            </p>
-
+            <h3>Cámara / Entorno AR Activo</h3>
+            <p>Espacio reservado para el visor de Realidad Aumentada.</p>
             <button
                 id="btn-cerrar-ar"
                 style="
@@ -661,30 +451,16 @@ function abrirAR() {
             >
                 Cerrar AR
             </button>
-
         </div>
     `;
 
+    document.getElementById('btn-cerrar-ar').addEventListener('click', () => {
+        cargarVista('menu');
+    });
 
-    document
-        .getElementById('btn-cerrar-ar')
-        .addEventListener('click', () => {
+    document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
 
-            cargarVista('menu');
-
-        });
-
-
-    document
-        .querySelectorAll('.bottom-nav .nav-item')
-        .forEach(item => {
-
-            item.classList.remove('active');
-
-        });
-
-
-    document
-        .getElementById('btn-back')
-        .classList.remove('hidden');
+    document.getElementById('btn-back').classList.remove('hidden');
 }
