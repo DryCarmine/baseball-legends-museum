@@ -1,0 +1,572 @@
+<style>
+  .filtros-wrap {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: var(--color-bg-dark, #0a0a1a);
+    color: var(--color-text, #fff);
+    font-family: 'Arial', sans-serif;
+    overflow: hidden;
+  }
+
+  /* ── NAVEGACIÓN DE VIDEOS ── */
+  .video-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    flex-shrink: 0;
+    background: rgba(0,0,0,0.7);
+    border-bottom: 2px solid var(--color-primary, #d4af37);
+    gap: 10px;
+  }
+  .nav-title {
+    flex: 1;
+    text-align: center;
+    min-width: 0;
+  }
+  .nav-title h2 {
+    font-size: clamp(0.85rem, 3vw, 1.05rem);
+    color: var(--color-primary, #d4af37);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin: 0 0 2px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .nav-title span {
+    display: block;
+    font-size: 0.7rem;
+    color: #aaa;
+  }
+  .nav-btn {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 1.5px solid color-mix(in srgb, var(--color-primary, #d4af37) 60%, transparent);
+    background: color-mix(in srgb, var(--color-primary, #d4af37) 10%, transparent);
+    color: var(--color-primary, #d4af37);
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nav-btn:active { transform: scale(0.92); }
+  .nav-btn:disabled {
+    opacity: 0.35;
+    pointer-events: none;
+  }
+
+  /* ── ÁREA DE VIDEO / CANVAS ── */
+  .video-stage {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+    overflow: hidden;
+    min-height: 0;
+    width: 100%;
+  }
+
+  #vid-source {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  #vid-canvas {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    display: block;
+  }
+
+  .filter-label-overlay {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.6);
+    color: var(--color-primary, #d4af37);
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    padding: 3px 12px;
+    border-radius: 20px;
+    pointer-events: none;
+    text-transform: uppercase;
+  }
+
+  /* ── CONTROLES DE FILTRO ── */
+  .filter-controls {
+    flex-shrink: 0;
+    padding: 10px 12px;
+    background: rgba(0,0,0,0.6);
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .filter-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .filter-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 8px 4px;
+    border-radius: 10px;
+    border: 1.5px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.05);
+    color: #ccc;
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .filter-btn .icon { font-size: 20px; }
+  .filter-btn.active {
+    border-color: var(--color-primary, #d4af37);
+    background: color-mix(in srgb, var(--color-primary, #d4af37) 15%, transparent);
+    color: var(--color-primary, #d4af37);
+  }
+  .filter-btn:active { transform: scale(0.95); }
+
+  /* ── SLIDER DE INTENSIDAD ── */
+  .intensity-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .intensity-row label {
+    font-size: 11px;
+    color: #aaa;
+    white-space: nowrap;
+  }
+  .intensity-row input[type=range] {
+    flex: 1;
+    accent-color: var(--color-primary, #d4af37);
+    height: 4px;
+  }
+  .intensity-row span {
+    font-size: 11px;
+    color: var(--color-primary, #d4af37);
+    min-width: 30px;
+    text-align: right;
+  }
+
+  /* ── BOTÓN SIN FILTRO ── */
+  .btn-original {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+    padding: 7px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: transparent;
+    color: #aaa;
+    font-size: 11px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-original.active {
+    border-color: var(--color-primary, #d4af37);
+    color: var(--color-primary, #d4af37);
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 360px) {
+    .video-nav { padding: 8px; gap: 6px; }
+    .nav-btn { width: 36px; height: 36px; font-size: 0.95rem; }
+    .nav-title h2 { font-size: 0.78rem; }
+    .nav-title span { font-size: 0.62rem; }
+    .filter-btn { font-size: 9px; padding: 6px 2px; }
+    .filter-btn .icon { font-size: 16px; }
+    .intensity-row label { font-size: 10px; }
+    .filter-label-overlay { font-size: 9px; padding: 2px 8px; }
+  }
+  @media (min-width: 600px) {
+    .filtros-wrap {
+      max-width: 600px;
+      margin: 0 auto;
+      border-left: 1px solid rgba(255,255,255,0.08);
+      border-right: 1px solid rgba(255,255,255,0.08);
+    }
+    .video-nav { padding: 14px 20px; }
+    .nav-title h2 { font-size: 1.05rem; }
+    .filter-btn { font-size: 11px; padding: 10px 6px; }
+  }
+</style>
+
+<div class="filtros-wrap">
+
+  <!-- Header / Navegación de videos -->
+  <div class="video-nav" id="video-nav">
+    <button class="nav-btn prev" id="btn-prev" onclick="FV.prevVideo()" aria-label="Video anterior">
+      ◀
+    </button>
+    <div class="nav-title">
+      <h2 id="video-title">🎬 Videos MLB</h2>
+      <span id="video-counter">0 / 0</span>
+    </div>
+    <button class="nav-btn next" id="btn-next" onclick="FV.nextVideo()" aria-label="Video siguiente">
+      ▶
+    </button>
+  </div>
+
+  <!-- Área de reproducción -->
+  <div class="video-stage">
+    <video id="vid-source" playsinline loop muted autoplay></video>
+    <canvas id="vid-canvas"></canvas>
+    <div class="filter-label-overlay" id="filter-label">SIN FILTRO</div>
+  </div>
+
+  <!-- Controles -->
+  <div class="filter-controls">
+    <div class="filter-row">
+      <button class="filter-btn" data-filter="blur" onclick="FV.setFilter('blur')">
+        <span class="icon">🌫️</span>Desenfoque
+      </button>
+      <button class="filter-btn" data-filter="pixel" onclick="FV.setFilter('pixel')">
+        <span class="icon">🟦</span>Pixelado
+      </button>
+      <button class="filter-btn" data-filter="thermal" onclick="FV.setFilter('thermal')">
+        <span class="icon">🌡️</span>Térmico
+      </button>
+      <button class="filter-btn" data-filter="saturate" onclick="FV.setFilter('saturate')">
+        <span class="icon">🎨</span>Saturado
+      </button>
+    </div>
+
+    <div class="intensity-row">
+      <label>Intensidad</label>
+      <input type="range" id="intensity-slider" min="1" max="100" value="50"
+             oninput="FV.setIntensity(this.value)">
+      <span id="intensity-val">50%</span>
+    </div>
+
+    <button class="btn-original active" id="btn-original" onclick="FV.setFilter('none')">
+      ▶ SIN FILTRO (ORIGINAL)
+    </button>
+  </div>
+
+</div>
+
+<script>
+(function() {
+
+  // ============================================================
+  // CARPETA DE VIDEOS
+  // Cualquier archivo .mp4 / .webm / .mov / .ogg colocado en
+  // assets/videos/ se detecta automáticamente, sin hardcodear.
+  // ============================================================
+  const VIDEOS_FOLDER = 'assets/videos/';
+  const VIDEO_EXTS = ['.mp4', '.webm', '.mov', '.ogg'];
+
+  // ============================================================
+  // MÓDULO PRINCIPAL
+  // ============================================================
+  const FV = window.FV = {
+
+    currentFilter: 'none',
+    intensity: 50,
+    animFrame: null,
+    video: null,
+    canvas: null,
+    ctx: null,
+    videos: [],
+    currentIndex: 0,
+
+    async init() {
+      this.video  = document.getElementById('vid-source');
+      this.canvas = document.getElementById('vid-canvas');
+      this.ctx    = this.canvas.getContext('2d', { willReadFrequently: true });
+
+      this.applyStoredTeamTheme();
+
+      this.videos = await this.scanVideosFolder(VIDEOS_FOLDER);
+
+      if (!this.videos.length) {
+        this.showEmptyState();
+        this.loop();
+        return;
+      }
+
+      this.loadVideoByIndex(0);
+      this.loop();
+    },
+
+    // ── Aplicar tema del equipo favorito guardado ─────────────
+    applyStoredTeamTheme() {
+      try {
+        if (typeof aplicarTemaEquipo === 'function' && typeof MLB_TEAMS !== 'undefined') {
+          const teamId = localStorage.getItem('favoriteTeam');
+          const team = MLB_TEAMS.find(t => t.id === teamId);
+          if (team) aplicarTemaEquipo(team);
+        }
+      } catch (e) {
+        console.warn('[filtros] No se pudo aplicar tema del equipo:', e);
+      }
+    },
+
+    // ── Detectar los videos disponibles ───────────────────────
+    async scanVideosFolder(folder) {
+      const found = new Set();
+
+      // 1) Manifiesto data/videos.json
+      try {
+        const res = await fetch('data/videos.json', { cache: 'no-store' });
+        if (res.ok) {
+          const list = await res.json();
+          list.forEach(name => found.add(name));
+        } else {
+          console.warn('[filtros] data/videos.json respondió', res.status);
+        }
+      } catch (e) {
+        console.warn('[filtros] No se pudo leer data/videos.json:', e);
+      }
+
+      // 2) Respaldo: listado de directorio (si el servidor lo soporta)
+      if (!found.size) {
+        try {
+          const res = await fetch(folder, { cache: 'no-store' });
+          if (res.ok) {
+            const html = await res.text();
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            Array.from(doc.querySelectorAll('a')).forEach(a => {
+              const href = a.getAttribute('href') || '';
+              const clean = href.split('?')[0];
+              if (VIDEO_EXTS.some(ext => clean.toLowerCase().endsWith(ext))) {
+                found.add(decodeURIComponent(clean.replace(/^\.?\//, '')));
+              }
+            });
+          }
+        } catch (e) {
+          console.warn('[filtros] No se pudo listar el directorio de videos:', e);
+        }
+      }
+
+      if (!found.size) {
+        console.error('[filtros] No se detectaron videos. Verifica que exista '
+          + 'data/videos.json con los nombres de archivo, y que la app se esté '
+          + 'sirviendo por http:// (no abriendo el HTML directamente con file://).');
+      }
+
+      return Array.from(found).map((filename, i) => ({
+        id: 'vid_' + i,
+        title: this.filenameToTitle(filename),
+        src: folder + filename
+      }));
+    },
+
+    // ── Convertir nombre de archivo en título legible ─────────
+    filenameToTitle(filename) {
+      const base = filename.replace(/\.[^/.]+$/, '');
+      return base
+        .replace(/[_-]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .replace(/\b\w/g, c => c.toUpperCase()) || 'Video';
+    },
+
+    // ── Actualizar barra de navegación ────────────────────────
+    updateNav() {
+      const total = this.videos.length;
+      const title = total ? this.videos[this.currentIndex].title : 'Sin videos';
+      document.getElementById('video-title').textContent = '🎬 ' + title;
+      document.getElementById('video-counter').textContent = total
+        ? `${this.currentIndex + 1} / ${total}`
+        : '0 / 0';
+
+      const prev = document.getElementById('btn-prev');
+      const next = document.getElementById('btn-next');
+      if (prev) prev.disabled = !total || this.currentIndex === 0;
+      if (next) next.disabled = !total || this.currentIndex === total - 1;
+    },
+
+    // ── Cargar video por índice ──────────────────────────────
+    loadVideoByIndex(index) {
+      if (!this.videos.length) return;
+      this.currentIndex = Math.max(0, Math.min(index, this.videos.length - 1));
+      const v = this.videos[this.currentIndex];
+      this.loadVideo(v);
+      this.updateNav();
+    },
+
+    // ── Navegación anterior/siguiente ─────────────────────────
+    nextVideo() {
+      this.loadVideoByIndex(this.currentIndex + 1);
+    },
+
+    prevVideo() {
+      this.loadVideoByIndex(this.currentIndex - 1);
+    },
+
+    // ── Estado vacío (sin videos en la carpeta) ───────────────
+    showEmptyState() {
+      this.updateNav();
+      document.getElementById('filter-label').textContent = 'SIN VIDEOS';
+      document.getElementById('video-title').textContent = '🎬 Sin videos';
+    },
+
+    // ── Cargar video ─────────────────────────────────────────
+    loadVideo(v) {
+      this.video.src = v.src;
+      this.video.load();
+      this.video.play().catch(() => {});
+    },
+
+    // ── Cambiar filtro ────────────────────────────────────────
+    setFilter(name) {
+      this.currentFilter = name;
+
+      document.querySelectorAll('.filter-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.filter === name);
+      });
+
+      const btnOrig = document.getElementById('btn-original');
+      btnOrig.classList.toggle('active', name === 'none');
+
+      const labels = {
+        none:     'SIN FILTRO',
+        blur:     '🌫️ DESENFOQUE',
+        pixel:    '🟦 PIXELADO',
+        thermal:  '🌡️ CÁMARA TÉRMICA',
+        saturate: '🎨 ALTA SATURACIÓN'
+      };
+      document.getElementById('filter-label').textContent = labels[name] || 'SIN FILTRO';
+    },
+
+    // ── Cambiar intensidad ────────────────────────────────────
+    setIntensity(val) {
+      this.intensity = parseInt(val);
+      document.getElementById('intensity-val').textContent = val + '%';
+    },
+
+    // ── Loop de renderizado ───────────────────────────────────
+    loop() {
+      const render = () => {
+        this.animFrame = requestAnimationFrame(render);
+        if (!this.video || this.video.readyState < 2) return;
+
+        const vw = this.video.videoWidth  || 320;
+        const vh = this.video.videoHeight || 240;
+
+        const stage = this.canvas.parentElement;
+        const ratio = Math.min(stage.clientWidth / vw, stage.clientHeight / vh);
+        this.canvas.width  = Math.floor(vw * ratio);
+        this.canvas.height = Math.floor(vh * ratio);
+
+        this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+
+        if (this.currentFilter !== 'none') {
+          this.applyFilter(this.currentFilter);
+        }
+      };
+      render();
+    },
+
+    // ── Aplicar filtro al ImageData ───────────────────────────
+    applyFilter(filter) {
+      const t = this.intensity / 100;
+      const w = this.canvas.width;
+      const h = this.canvas.height;
+
+      switch (filter) {
+        case 'blur':     this.filterBlur(t);           break;
+        case 'pixel':    this.filterPixel(t, w, h);    break;
+        case 'thermal':  this.filterThermal(t, w, h);  break;
+        case 'saturate': this.filterSaturate(t, w, h); break;
+      }
+    },
+
+    // ── FILTRO 1: Desenfoque ──────────────────────────────────
+    filterBlur(t) {
+      const radius = Math.max(1, Math.round(t * 12));
+      this.ctx.filter = `blur(${radius}px)`;
+      this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+      this.ctx.filter = 'none';
+    },
+
+    // ── FILTRO 2: Pixelado ────────────────────────────────────
+    filterPixel(t, w, h) {
+      const size = Math.max(2, Math.round(t * 30));
+      const tmp  = document.createElement('canvas');
+      tmp.width  = Math.max(1, Math.floor(w / size));
+      tmp.height = Math.max(1, Math.floor(h / size));
+      const tc   = tmp.getContext('2d');
+      tc.drawImage(this.canvas, 0, 0, tmp.width, tmp.height);
+      this.ctx.imageSmoothingEnabled = false;
+      this.ctx.drawImage(tmp, 0, 0, w, h);
+      this.ctx.imageSmoothingEnabled = true;
+    },
+
+    // ── FILTRO 3: Cámara Térmica ──────────────────────────────
+    filterThermal(t, w, h) {
+      const imgData = this.ctx.getImageData(0, 0, w, h);
+      const d = imgData.data;
+      for (let i = 0; i < d.length; i += 4) {
+        const lum = 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
+        let r, g, b;
+        if (lum < 85) {
+          r = 0;
+          g = Math.round(lum * 3);
+          b = 255 - Math.round(lum * 3);
+        } else if (lum < 170) {
+          const n = (lum - 85) / 85;
+          r = Math.round(n * 255);
+          g = 255;
+          b = 0;
+        } else {
+          const n = (lum - 170) / 85;
+          r = 255;
+          g = Math.round(255 - n * 255);
+          b = 0;
+        }
+        d[i]   = Math.round(d[i]   * (1 - t) + r * t);
+        d[i+1] = Math.round(d[i+1] * (1 - t) + g * t);
+        d[i+2] = Math.round(d[i+2] * (1 - t) + b * t);
+      }
+      this.ctx.putImageData(imgData, 0, 0);
+    },
+
+    // ── FILTRO 4: Alta Saturación ─────────────────────────────
+    filterSaturate(t, w, h) {
+      const imgData = this.ctx.getImageData(0, 0, w, h);
+      const d = imgData.data;
+      const factor = 1 + t * 4;
+      for (let i = 0; i < d.length; i += 4) {
+        const r = d[i], g = d[i+1], b = d[i+2];
+        const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+        d[i]   = Math.min(255, Math.max(0, Math.round(lum + (r - lum) * factor)));
+        d[i+1] = Math.min(255, Math.max(0, Math.round(lum + (g - lum) * factor)));
+        d[i+2] = Math.min(255, Math.max(0, Math.round(lum + (b - lum) * factor)));
+      }
+      this.ctx.putImageData(imgData, 0, 0);
+    }
+  };
+
+  // ── Arrancar cuando el DOM esté listo ──────────────────────
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => FV.init());
+  } else {
+    FV.init();
+  }
+
+})();
+</script>
