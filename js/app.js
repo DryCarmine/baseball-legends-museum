@@ -101,7 +101,11 @@ async function cargarVista(vista) {
         if (vista === 'partidos' && typeof inicializarPartidos === 'function') {
             inicializarPartidos();
         }
-
+        if (vista === 'galeria') {
+            if (window.Gallery && typeof window.Gallery.init === 'function') {
+                window.Gallery.init();
+            }
+        }
 
         // -----------------------------------------------------
         // Navegación inferior

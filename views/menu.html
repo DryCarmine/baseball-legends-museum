@@ -16,12 +16,15 @@
 </div>
 
 <div class="action-buttons-row">
-    <button class="btn-primary" onclick="cargarVista('filtros')">CÁMARA AR</button>
+    <button class="btn-primary" onclick="cargarVista('filtros')">FILTROS DE VIDEO</button>
     <button class="btn-secondary" onclick="cargarVista('trivia')">TRIVIA MLB</button>
 </div>
 
-<!-- Botón del Minijuego -->
-<div class="game-launcher" style="margin-top: 15px; width: 100%;">
+<!-- Botón de Galería y Minijuego -->
+<div style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px; width: 100%;">
+    <button class="btn-primary" onclick="cargarVista('galeria')" style="background: linear-gradient(135deg, var(--color-primary, #1e3a8a), var(--color-secondary, #3b82f6)); width: 100%; border: 1px solid var(--color-gold, #d4af37);">
+        🖼️ GALERÍA DE EQUIPOS
+    </button>
     <button class="btn-primary" onclick="cargarVista('minijuego')" style="background: linear-gradient(135deg, #d4af37, #b8860b); width: 100%; border: none;">
         🎮 DERBY DE HOME RUNS
     </button>

@@ -1,0 +1,130 @@
+<section id="galeria-view" class="gallery-view">
+
+    <header class="gallery-header">
+        <div>
+            <span class="museum-eyebrow">ARCHIVO VISUAL</span>
+            <h1>Galería MLB</h1>
+            <p>Una colección de emblemas y escenarios de las Grandes Ligas.</p>
+        </div>
+
+        <div class="gallery-header-mark" aria-hidden="true">
+            ⚾
+        </div>
+    </header>
+
+    <section class="gallery-featured-card">
+        <div class="gallery-featured-image">
+            <img
+                src="assets/images/stadium_bg.jpg"
+                alt="Estadio de béisbol"
+                loading="lazy">
+        </div>
+
+        <div class="gallery-featured-content">
+            <span class="museum-eyebrow">PIEZA DESTACADA</span>
+            <h2>Los grandes escenarios del béisbol</h2>
+            <p>
+                Explora la colección visual del Baseball Legends Museum
+                y descubre los equipos que forman parte de la MLB.
+            </p>
+        </div>
+    </section>
+
+    <div class="gallery-toolbar">
+        <label class="gallery-search">
+            <span aria-hidden="true">🔎</span>
+            <input
+                id="gallery-search-input"
+                type="search"
+                placeholder="Buscar equipo..."
+                autocomplete="off">
+        </label>
+
+        <div class="gallery-filters" role="group" aria-label="Filtrar galería">
+            <button
+                class="gallery-filter-button active"
+                type="button"
+                data-gallery-filter="all">
+                Todos
+            </button>
+
+            <button
+                class="gallery-filter-button"
+                type="button"
+                data-gallery-filter="American">
+                Liga Americana
+            </button>
+
+            <button
+                class="gallery-filter-button"
+                type="button"
+                data-gallery-filter="National">
+                Liga Nacional
+            </button>
+
+            <button
+                class="gallery-filter-button"
+                type="button"
+                data-gallery-filter="estadios">
+                Estadios
+            </button>
+        </div>
+    </div>
+
+    <div
+        id="gallery-status"
+        class="gallery-status"
+        role="status"
+        aria-live="polite">
+        Cargando colección...
+    </div>
+
+    <section
+        id="gallery-grid"
+        class="gallery-grid"
+        aria-label="Colección de imágenes">
+        <!-- gallery.js insertará aquí las tarjetas -->
+    </section>
+
+    <div
+        id="gallery-empty-state"
+        class="gallery-empty-state hidden"
+        role="status">
+        <span class="gallery-empty-icon" aria-hidden="true">🖼️</span>
+        <h2>No encontramos piezas</h2>
+        <p>Prueba con otro equipo o cambia el filtro seleccionado.</p>
+    </div>
+
+    <div
+        id="gallery-modal"
+        class="gallery-modal hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="gallery-modal-title">
+
+        <div class="gallery-modal-backdrop" data-gallery-close></div>
+
+        <article class="gallery-modal-content">
+            <button
+                id="gallery-modal-close"
+                class="gallery-modal-close"
+                type="button"
+                data-gallery-close
+                aria-label="Cerrar imagen">
+                ×
+            </button>
+
+            <img
+                id="gallery-modal-image"
+                src=""
+                alt="">
+
+            <div class="gallery-modal-info">
+                <span id="gallery-modal-league" class="museum-eyebrow"></span>
+                <h2 id="gallery-modal-title"></h2>
+                <p id="gallery-modal-description"></p>
+            </div>
+        </article>
+    </div>
+
+</section>
