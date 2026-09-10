@@ -1,0 +1,158 @@
+<section class="ar-page">
+
+    <!-- Interfaz superpuesta -->
+    <div class="ar-interface">
+
+        <div class="ar-top-panel">
+
+            <div>
+                <span class="ar-eyebrow">
+                    BASEBALL LEGENDS AR
+                </span>
+
+                <h2>
+                    Arizona Diamondbacks
+                </h2>
+            </div>
+
+            <div id="ar-status" class="ar-status">
+                Cámara detenida
+            </div>
+
+        </div>
+
+
+        <div id="ar-instructions" class="ar-instructions">
+
+            <div class="ar-instructions-icon">
+                📷
+            </div>
+
+            <h3>
+                Escanea el marcador
+            </h3>
+
+            <p>
+                Apunta la cámara al logotipo de los
+                Arizona Diamondbacks.
+            </p>
+
+        </div>
+
+
+        <button
+            id="btn-start-ar"
+            class="ar-start-button"
+            type="button"
+        >
+            ACTIVAR CÁMARA
+        </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         ESCENA DE REALIDAD AUMENTADA
+         ===================================================== -->
+
+    <div id="ar-scene-container">
+
+        <a-scene
+            id="ar-scene"
+
+            embedded
+
+            mindar-image="
+                imageTargetSrc: https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/image-tracking/assets/card-example/card.mind;
+                autoStart: false;
+                uiLoading: no;
+                uiScanning: no;
+                uiError: no;
+            "
+
+            color-space="sRGB"
+
+            renderer="
+                colorManagement: true;
+                physicallyCorrectLights: true;
+                antialias: true;
+            "
+
+            vr-mode-ui="enabled: false"
+
+            device-orientation-permission-ui="enabled: false"
+        >
+
+
+            <!-- =============================================
+                 ASSETS
+                 ============================================= -->
+
+            <a-assets timeout="15000">
+
+                <a-asset-item
+                    id="arizona-model"
+                    src="assets/models/ArizonaDiamonds.glb">
+                </a-asset-item>
+
+            </a-assets>
+
+
+            <!-- =============================================
+                 ILUMINACIÓN
+                 ============================================= -->
+
+            <a-light
+                type="ambient"
+                intensity="1.2">
+            </a-light>
+
+            <a-light
+                type="directional"
+                intensity="1.5"
+                position="1 2 1">
+            </a-light>
+
+
+            <!-- =============================================
+                 CÁMARA
+                 ============================================= -->
+
+            <a-camera
+                position="0 0 0"
+                look-controls="enabled: false">
+            </a-camera>
+
+
+            <!-- =============================================
+                 MARCADOR 0
+                 ============================================= -->
+
+            <a-entity
+                id="arizona-target"
+                mindar-image-target="targetIndex: 0"
+            >
+
+                <!-- Modelo -->
+
+                <a-gltf-model
+                    id="arizona-3d-model"
+
+                    src="#arizona-model"
+
+                    position="0 0 0.1"
+
+                    rotation="0 0 0"
+
+                    scale="0.4 0.4 0.4"
+
+                    visible="true">
+                </a-gltf-model>
+
+            </a-entity>
+
+        </a-scene>
+
+    </div>
+
+</section>
