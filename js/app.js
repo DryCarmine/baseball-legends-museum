@@ -36,15 +36,6 @@ document.addEventListener("DOMContentLoaded", () => {
             cargarVista('config');
         });
     }
-
-    // Botón AR
-    const btnAr = document.getElementById('btn-ar');
-
-    if (btnAr) {
-        btnAr.addEventListener('click', () => {
-            abrirAR();
-        });
-    }
 });
 
 
@@ -52,8 +43,20 @@ document.addEventListener("DOMContentLoaded", () => {
 // SISTEMA CENTRAL DE VISTAS
 // =========================================================
 
+let vistaActual = null;
 async function cargarVista(vista) {
+    // Si estamos saliendo de la vista AR,
+// detener cámara y reconocimiento antes de cambiar de pantalla.
+if (
+    vistaActual === 'ar' &&
+    vista !== 'ar' &&
+    window.ARModule &&
+    typeof window.ARModule.stop === 'function'
+) {
 
+    window.ARModule.stop();
+
+}
     const ruta = `views/${vista}.html`;
 
     try {
@@ -70,6 +73,7 @@ async function cargarVista(vista) {
 
         const contenedor = document.getElementById('app-content');
         contenedor.innerHTML = html;
+        vistaActual = vista;
 
         // Ejecutar scripts inyectados dinámicamente (necesario para el minijuego y otras vistas)
         contenedor.querySelectorAll('script').forEach(oldScript => {
@@ -106,6 +110,23 @@ async function cargarVista(vista) {
                 window.Gallery.init();
             }
         }
+        if (vista === 'ar') {
+
+    if (
+        window.ARModule &&
+        typeof window.ARModule.init === 'function'
+    ) {
+
+        window.ARModule.init();
+
+    } else {
+
+        console.error(
+            'ARModule no está disponible. Verifica que js/ar.js esté cargado.'
+        );
+
+    }
+}
 
         // -----------------------------------------------------
         // Navegación inferior
@@ -419,52 +440,4 @@ function _darken(hex, amount) {
     const b   = Math.max(0, (num & 0xff) - amount);
 
     return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
-}
-
-
-// =========================================================
-// REALIDAD AUMENTADA
-// =========================================================
-
-function abrirAR() {
-
-    document.getElementById('app-content').innerHTML = `
-        <div style="
-            padding: 20px;
-            text-align: center;
-            color: #fff;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        ">
-            <h3>Cámara / Entorno AR Activo</h3>
-            <p>Espacio reservado para el visor de Realidad Aumentada.</p>
-            <button
-                id="btn-cerrar-ar"
-                style="
-                    margin-top: 20px;
-                    padding: 10px 20px;
-                    background: #333;
-                    color: white;
-                    border: none;
-                    border-radius: 5px;
-                    cursor: pointer;
-                "
-            >
-                Cerrar AR
-            </button>
-        </div>
-    `;
-
-    document.getElementById('btn-cerrar-ar').addEventListener('click', () => {
-        cargarVista('menu');
-    });
-
-    document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
-        item.classList.remove('active');
-    });
-
-    document.getElementById('btn-back').classList.remove('hidden');
 }
