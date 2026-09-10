@@ -169,149 +169,148 @@
     mindar-image-target="targetIndex: 0"
 >
 
+    <!-- Referencia visible para comprobar el tracking -->
+    <a-box
+        position="0 0.1 0"
+        scale="0.15 0.15 0.15"
+        color="#ff0000">
+    </a-box>
+
+    <!-- Modelo Arizona -->
     <a-gltf-model
-    id="arizona-model-3d"
-    src="#arizonaModel"
-
-    position="-3.36 -0.28 0.53"
-
-    rotation="0 0 0"
-
-    scale="0.1 0.1 0.1">
-</a-gltf-model>
+        id="arizona-model-3d"
+        src="#arizonaModel"
+        position="0 0 0.1"
+        rotation="0 0 0">
+    </a-gltf-model>
 
 </a-entity>
-
-
-
-            <!-- Modelo oficial -->
-
-            <a-gltf-model
-
-                src="#avatarModel"
-
-                rotation="0 0 0"
-
-                position="0 0 0.1"
-
-                scale="0.005 0.005 0.005"
-
-                animation="
-                    property: position;
-                    to: 0 0.1 0.1;
-                    dur: 1000;
-                    easing: easeInOutQuad;
-                    loop: true;
-                    dir: alternate;
-                "
-
-            >
-
-            </a-gltf-model>
-
-
-        </a-entity>
-
-
-    </a-scene>
-
 
 
     <!-- =====================================================
          DIAGNÓSTICO
          ===================================================== -->
 
-    <script>
-
-        document.addEventListener(
-            "DOMContentLoaded",
-            () => {
-
-                const target =
-                    document.getElementById(
-                        "test-target"
-                    );
-
-
-                const status =
-                    document.getElementById(
-                        "status"
-                    );
-
-
-                const scene =
-                    document.querySelector(
-                        "a-scene"
-                    );
-
-
-                scene.addEventListener(
-                    "arReady",
-                    () => {
-
-                        status.textContent =
-                            "✅ Cámara lista — buscando carta...";
-
-                    }
-                );
-
-
-                scene.addEventListener(
-                    "arError",
-                    () => {
-
-                        status.textContent =
-                            "❌ Error iniciando MindAR";
-
-                    }
-                );
-
-
-                target.addEventListener(
-                    "targetFound",
-                    () => {
-
-                        status.textContent =
-                            "🎯 MARCADOR DETECTADO";
-
-                    }
-                );
-
-
-                target.addEventListener(
-                    "targetLost",
-                    () => {
-
-                        status.textContent =
-                            "🔎 Marcador perdido — buscando...";
-
-                    }
-                );
-
-            }
-        );
-const model =
-    document.getElementById("arizona-model-3d");
+const model = document.getElementById(
+    "arizona-model-3d"
+);
 
 model.addEventListener(
     "model-loaded",
     () => {
+
         console.log(
-            "✅ ArizonaDiamonds.glb cargado correctamente"
+            "✅ GLB cargado correctamente"
         );
+
+        status.textContent =
+            "✅ Modelo cargado — busca el marcador";
+
+
+        const object =
+            model.getObject3D("mesh");
+
+
+        if (!object) {
+
+            console.error(
+                "No se encontró el objeto 3D interno"
+            );
+
+            return;
+        }
+
+
+        // =====================================================
+        // CALCULAR DIMENSIONES REALES DEL MODELO
+        // =====================================================
+
+        const box =
+            new THREE.Box3().setFromObject(object);
+
+
+        const size =
+            new THREE.Vector3();
+
+
+        const center =
+            new THREE.Vector3();
+
+
+        box.getSize(size);
+
+        box.getCenter(center);
+
+
+        console.log(
+            "Tamaño original:",
+            size
+        );
+
+
+        console.log(
+            "Centro original:",
+            center
+        );
+
+
+        // =====================================================
+        // CENTRAR EL MODELO
+        // =====================================================
+
+        object.position.x -= center.x;
+
+        // Los pies quedan apoyados aproximadamente en Y = 0
+        object.position.y -= box.min.y;
+
+        object.position.z -= center.z;
+
+
+        // =====================================================
+        // ESCALAR AUTOMÁTICAMENTE
+        // =====================================================
+
+        const alturaDeseada = 0.8;
+
+        const escala =
+            alturaDeseada / size.y;
+
+
+        model.object3D.scale.set(
+            escala,
+            escala,
+            escala
+        );
+
+
+        console.log(
+            "Escala aplicada:",
+            escala
+        );
+
+
+        console.log(
+            "✅ Modelo centrado automáticamente"
+        );
+
     }
 );
 
+
 model.addEventListener(
     "model-error",
-    (event) => {
+    event => {
+
         console.error(
-            "❌ Error cargando ArizonaDiamonds.glb",
+            "❌ ERROR CARGANDO GLB",
             event
         );
+
+        status.textContent =
+            "❌ El archivo GLB no pudo cargarse";
+
     }
 );
-    </script>
 
 
 </body>
