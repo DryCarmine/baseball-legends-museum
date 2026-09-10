@@ -191,6 +191,75 @@
          DIAGNÓSTICO
          ===================================================== -->
 
+    <script>
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            () => {
+
+                const target =
+                    document.getElementById(
+                        "test-target"
+                    );
+
+
+                const status =
+                    document.getElementById(
+                        "status"
+                    );
+
+
+                const scene =
+                    document.querySelector(
+                        "a-scene"
+                    );
+
+
+                scene.addEventListener(
+                    "arReady",
+                    () => {
+
+                        status.textContent =
+                            "✅ Cámara lista — buscando carta...";
+
+                    }
+                );
+
+
+                scene.addEventListener(
+                    "arError",
+                    () => {
+
+                        status.textContent =
+                            "❌ Error iniciando MindAR";
+
+                    }
+                );
+
+
+                target.addEventListener(
+                    "targetFound",
+                    () => {
+
+                        status.textContent =
+                            "🎯 MARCADOR DETECTADO";
+
+                    }
+                );
+
+
+                target.addEventListener(
+                    "targetLost",
+                    () => {
+
+                        status.textContent =
+                            "🔎 Marcador perdido — buscando...";
+
+                    }
+                );
+
+            }
+        );
 const model = document.getElementById(
     "arizona-model-3d"
 );
@@ -311,6 +380,7 @@ model.addEventListener(
 
     }
 );
+    </script>
 
 
 </body>
