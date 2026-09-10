@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Prueba MindAR</title>
+
+
+    <!-- =====================================================
+         MINDAR - CONFIGURACIÓN OFICIAL DE PRUEBA
+         ===================================================== -->
+
+    <script
+        src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image.prod.js">
+    </script>
+
+    <script
+        src="https://aframe.io/releases/1.2.0/aframe.min.js">
+    </script>
+
+    <script
+        src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image-aframe.prod.js">
+    </script>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+
+
+        #status {
+            position: fixed;
+
+            top: 15px;
+            left: 50%;
+
+            transform: translateX(-50%);
+
+            z-index: 99999;
+
+            padding: 10px 18px;
+
+            background: rgba(0, 0, 0, 0.75);
+            color: white;
+
+            border-radius: 20px;
+
+            font-size: 14px;
+            font-weight: bold;
+
+            pointer-events: none;
+        }
+
+
+        #instructions {
+            position: fixed;
+
+            bottom: 25px;
+            left: 50%;
+
+            transform: translateX(-50%);
+
+            z-index: 99999;
+
+            width: calc(100% - 40px);
+            max-width: 450px;
+
+            padding: 15px;
+
+            background: rgba(0, 0, 0, 0.75);
+            color: white;
+
+            border-radius: 10px;
+
+            text-align: center;
+
+            pointer-events: none;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- Estado de detección -->
+
+    <div id="status">
+        Iniciando MindAR...
+    </div>
+
+
+    <div id="instructions">
+        Apunta la cámara a la carta oficial de prueba de MindAR.
+    </div>
+
+
+
+    <!-- =====================================================
+         ESCENA AR
+         ===================================================== -->
+
+    <a-scene
+
+        mindar-image="
+            imageTargetSrc:
+            https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/examples/image-tracking/assets/card-example/card.mind;
+        "
+
+        color-space="sRGB"
+
+        renderer="
+            colorManagement: true;
+            physicallyCorrectLights: true;
+        "
+
+        vr-mode-ui="enabled: false"
+
+        device-orientation-permission-ui="enabled: false"
+
+    >
+
+
+        <!-- =================================================
+             ASSETS OFICIALES
+             ================================================= -->
+
+        <a-assets>
+
+
+            <!-- Carta -->
+
+            <img
+
+                id="card"
+
+                src="
+                https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/examples/image-tracking/assets/card-example/card.png
+                "
+
+            >
+
+
+            <!-- Modelo oficial -->
+
+            <a-asset-item
+
+                id="avatarModel"
+
+                src="
+                https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/examples/image-tracking/assets/card-example/softmind/scene.gltf
+                "
+
+            >
+
+            </a-asset-item>
+
+
+        </a-assets>
+
+
+
+        <!-- =================================================
+             CÁMARA
+             ================================================= -->
+
+        <a-camera
+
+            position="0 0 0"
+
+            look-controls="enabled: false">
+
+        </a-camera>
+
+
+
+        <!-- =================================================
+             TARGET
+             ================================================= -->
+
+        <a-entity
+
+            id="test-target"
+
+            mindar-image-target="targetIndex: 0"
+
+        >
+
+
+            <!-- Mostrar la propia carta encima -->
+
+            <a-plane
+
+                src="#card"
+
+                position="0 0 0"
+
+                height="0.552"
+
+                width="1"
+
+                rotation="0 0 0">
+
+            </a-plane>
+
+
+
+            <!-- Modelo oficial -->
+
+            <a-gltf-model
+
+                src="#avatarModel"
+
+                rotation="0 0 0"
+
+                position="0 0 0.1"
+
+                scale="0.005 0.005 0.005"
+
+                animation="
+                    property: position;
+                    to: 0 0.1 0.1;
+                    dur: 1000;
+                    easing: easeInOutQuad;
+                    loop: true;
+                    dir: alternate;
+                "
+
+            >
+
+            </a-gltf-model>
+
+
+        </a-entity>
+
+
+    </a-scene>
+
+
+
+    <!-- =====================================================
+         DIAGNÓSTICO
+         ===================================================== -->
+
+    <script>
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            () => {
+
+                const target =
+                    document.getElementById(
+                        "test-target"
+                    );
+
+
+                const status =
+                    document.getElementById(
+                        "status"
+                    );
+
+
+                const scene =
+                    document.querySelector(
+                        "a-scene"
+                    );
+
+
+                scene.addEventListener(
+                    "arReady",
+                    () => {
+
+                        status.textContent =
+                            "✅ Cámara lista — buscando carta...";
+
+                    }
+                );
+
+
+                scene.addEventListener(
+                    "arError",
+                    () => {
+
+                        status.textContent =
+                            "❌ Error iniciando MindAR";
+
+                    }
+                );
+
+
+                target.addEventListener(
+                    "targetFound",
+                    () => {
+
+                        status.textContent =
+                            "🎯 MARCADOR DETECTADO";
+
+                    }
+                );
+
+
+                target.addEventListener(
+                    "targetLost",
+                    () => {
+
+                        status.textContent =
+                            "🔎 Marcador perdido — buscando...";
+
+                    }
+                );
+
+            }
+        );
+
+    </script>
+
+
+</body>
+
+</html>
