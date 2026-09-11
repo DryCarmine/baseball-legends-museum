@@ -138,8 +138,8 @@
 <a-assets>
 
     <a-asset-item
-        id="arizonaModel"
-        src="assets/models/ArizonaDiamonds.glb">
+        id="twinsModel"
+        src="assets/models/EnOrigen2.glb">
     </a-asset-item>
 
 </a-assets>
@@ -169,23 +169,27 @@
     mindar-image-target="targetIndex: 0"
 >
 
-    <!-- Referencia visible para comprobar el tracking -->
+    <!-- Cubo de referencia -->
     <a-box
-        position="0 0.1 0"
+        position="0 0 0.1"
         scale="0.15 0.15 0.15"
-        color="#ff0000">
+        color="red">
     </a-box>
 
-    <!-- Modelo Arizona -->
+
+    <!-- Modelo Minnesota -->
     <a-gltf-model
-        id="arizona-model-3d"
-        src="#arizonaModel"
+        id="twins-model-3d"
+        src="#twinsModel"
+
         position="0 0 0.1"
-        rotation="0 0 0">
+
+        rotation="0 0 0"
+
+        scale="0.12 0.12 0.12">
     </a-gltf-model>
 
 </a-entity>
-
 
     <!-- =====================================================
          DIAGNÓSTICO
