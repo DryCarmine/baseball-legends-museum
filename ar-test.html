@@ -10,11 +10,12 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Prueba MindAR</title>
+    <title>Baseball Legends Museum - AR Test</title>
 
 
     <!-- =====================================================
-         MINDAR - CONFIGURACIÓN OFICIAL DE PRUEBA
+         MINDAR + A-FRAME
+         Usamos las versiones que ya funcionaron en tu teléfono
          ===================================================== -->
 
     <script
@@ -36,36 +37,52 @@
             box-sizing: border-box;
         }
 
+        html,
         body {
+            width: 100%;
+            height: 100%;
             margin: 0;
             overflow: hidden;
+            background: #000;
             font-family: Arial, sans-serif;
         }
 
 
+        /* =====================================================
+           ESTADO SUPERIOR
+           ===================================================== */
+
         #status {
             position: fixed;
 
-            top: 15px;
+            top: 20px;
             left: 50%;
 
             transform: translateX(-50%);
 
             z-index: 99999;
 
-            padding: 10px 18px;
+            min-width: 230px;
 
-            background: rgba(0, 0, 0, 0.75);
+            padding: 12px 18px;
+
+            background: rgba(0, 0, 0, 0.82);
             color: white;
 
-            border-radius: 20px;
+            border-radius: 18px;
 
-            font-size: 14px;
+            text-align: center;
+
+            font-size: 15px;
             font-weight: bold;
 
             pointer-events: none;
         }
 
+
+        /* =====================================================
+           INFORMACIÓN INFERIOR
+           ===================================================== */
 
         #instructions {
             position: fixed;
@@ -78,16 +95,73 @@
             z-index: 99999;
 
             width: calc(100% - 40px);
-            max-width: 450px;
+            max-width: 460px;
 
-            padding: 15px;
+            padding: 14px 18px;
 
-            background: rgba(0, 0, 0, 0.75);
+            background: rgba(0, 0, 0, 0.78);
             color: white;
 
-            border-radius: 10px;
+            border-radius: 14px;
 
             text-align: center;
+
+            font-size: 14px;
+
+            pointer-events: none;
+        }
+
+
+        /* =====================================================
+           BOTÓN VOLVER
+           ===================================================== */
+
+        #back-button {
+            position: fixed;
+
+            top: 20px;
+            left: 15px;
+
+            z-index: 100000;
+
+            padding: 10px 14px;
+
+            background: rgba(10, 17, 40, 0.9);
+            color: #d4af37;
+
+            border: 1px solid #d4af37;
+            border-radius: 9px;
+
+            text-decoration: none;
+
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+
+        /* =====================================================
+           DEBUG
+           ===================================================== */
+
+        #debug {
+            position: fixed;
+
+            top: 90px;
+            left: 15px;
+
+            z-index: 99999;
+
+            max-width: calc(100% - 30px);
+
+            padding: 8px 10px;
+
+            background: rgba(0, 0, 0, 0.65);
+            color: #8aff8a;
+
+            border-radius: 8px;
+
+            font-family: monospace;
+            font-size: 11px;
 
             pointer-events: none;
         }
@@ -100,15 +174,30 @@
 <body>
 
 
-    <!-- Estado de detección -->
+    <!-- =====================================================
+         INTERFAZ
+         ===================================================== -->
+
+    <a
+        id="back-button"
+        href="index.html"
+    >
+        ← Volver
+    </a>
+
 
     <div id="status">
         Iniciando MindAR...
     </div>
 
 
+    <div id="debug">
+        Esperando escena...
+    </div>
+
+
     <div id="instructions">
-        Apunta la cámara a la carta oficial de prueba de MindAR.
+        Apunta la cámara al marcador de Arizona.
     </div>
 
 
@@ -118,32 +207,30 @@
          ===================================================== -->
 
     <a-scene
-    mindar-image="
-        imageTargetSrc: assets/ar/targets/arizona-target.mind;
-    "
-    color-space="sRGB"
-    renderer="
-        colorManagement: true;
-        physicallyCorrectLights: true;
-    "
-    vr-mode-ui="enabled: false"
-    device-orientation-permission-ui="enabled: false"
->
 
+        id="ar-scene"
 
-        <!-- =================================================
-             ASSETS OFICIALES
-             ================================================= -->
+        mindar-image="
+            imageTargetSrc: assets/ar/targets/arizona-target.mind;
+            autoStart: true;
+            uiLoading: no;
+            uiScanning: no;
+            uiError: no;
+        "
 
-<a-assets>
+        color-space="sRGB"
 
-    <a-asset-item
-        id="twinsModel"
-        src="assets/models/EnOrigen2.glb">
-    </a-asset-item>
+        renderer="
+            colorManagement: true;
+            physicallyCorrectLights: true;
+            antialias: true;
+        "
 
-</a-assets>
+        vr-mode-ui="enabled: false"
 
+        device-orientation-permission-ui="enabled: false"
+
+    >
 
 
         <!-- =================================================
@@ -161,35 +248,96 @@
 
 
         <!-- =================================================
-             TARGET
+             LUCES
+             ================================================= -->
+
+        <a-light
+
+            type="ambient"
+
+            intensity="1.5">
+
+        </a-light>
+
+
+        <a-light
+
+            type="directional"
+
+            position="1 2 1"
+
+            intensity="1.5">
+
+        </a-light>
+
+
+
+        <!-- =================================================
+             TARGET 0
              ================================================= -->
 
         <a-entity
-    id="test-target"
-    mindar-image-target="targetIndex: 0"
->
 
-    <!-- Cubo de referencia -->
-    <a-box
-        position="0 0 0.1"
-        scale="0.15 0.15 0.15"
-        color="red">
-    </a-box>
+            id="test-target"
+
+            mindar-image-target="targetIndex: 0"
+
+        >
 
 
-    <!-- Modelo Minnesota -->
-    <a-gltf-model
-        id="twins-model-3d"
-        src="#twinsModel"
+            <!--
+                Cubo rojo de diagnóstico.
 
-        position="0 0 0.1"
+                Si aparece, sabemos que:
+                Cámara ✅
+                MindAR ✅
+                Target ✅
+                Renderizado 3D ✅
+            -->
 
-        rotation="0 0 0"
+            <a-box
 
-        scale="0.12 0.12 0.12">
-    </a-gltf-model>
+                id="debug-box"
 
-</a-entity>
+                position="0 0 0.1"
+
+                scale="0.15 0.15 0.15"
+
+                color="#ff0000">
+
+            </a-box>
+
+
+
+            <!-- =================================================
+                 MODELO MINNESOTA
+
+                 IMPORTANTE:
+                 NO está dentro de <a-assets>.
+                 Así un error del GLB no bloquea MindAR.
+                 ================================================= -->
+
+            <a-gltf-model
+
+                id="twins-model"
+
+                src="assets/models/EnOrigen2.glb"
+
+                position="0 0 0.1"
+
+                rotation="0 0 0"
+
+                visible="true">
+
+            </a-gltf-model>
+
+
+        </a-entity>
+
+
+    </a-scene>
+
+
 
     <!-- =====================================================
          DIAGNÓSTICO
@@ -201,9 +349,21 @@
             "DOMContentLoaded",
             () => {
 
+                const scene =
+                    document.getElementById(
+                        "ar-scene"
+                    );
+
+
                 const target =
                     document.getElementById(
                         "test-target"
+                    );
+
+
+                const model =
+                    document.getElementById(
+                        "twins-model"
                     );
 
 
@@ -213,33 +373,62 @@
                     );
 
 
-                const scene =
-                    document.querySelector(
-                        "a-scene"
+                const debug =
+                    document.getElementById(
+                        "debug"
                     );
 
+
+                const instructions =
+                    document.getElementById(
+                        "instructions"
+                    );
+
+
+                /* =================================================
+                   MINDAR LISTO
+                   ================================================= */
 
                 scene.addEventListener(
                     "arReady",
                     () => {
 
                         status.textContent =
-                            "✅ Cámara lista — buscando carta...";
+                            "✅ Cámara lista — buscando marcador";
+
+                        debug.textContent =
+                            "MindAR iniciado correctamente.";
 
                     }
                 );
 
 
+                /* =================================================
+                   ERROR MINDAR
+                   ================================================= */
+
                 scene.addEventListener(
                     "arError",
-                    () => {
+                    event => {
 
                         status.textContent =
                             "❌ Error iniciando MindAR";
 
+                        debug.textContent =
+                            "Error MindAR. Revisa consola.";
+
+                        console.error(
+                            "Error MindAR:",
+                            event
+                        );
+
                     }
                 );
 
+
+                /* =================================================
+                   MARCADOR ENCONTRADO
+                   ================================================= */
 
                 target.addEventListener(
                     "targetFound",
@@ -248,142 +437,232 @@
                         status.textContent =
                             "🎯 MARCADOR DETECTADO";
 
+                        instructions.textContent =
+                            "Marcador localizado. Modelo AR activo.";
+
+                        console.log(
+                            "✅ Marcador detectado"
+                        );
+
                     }
                 );
 
+
+                /* =================================================
+                   MARCADOR PERDIDO
+                   ================================================= */
 
                 target.addEventListener(
                     "targetLost",
                     () => {
 
                         status.textContent =
-                            "🔎 Marcador perdido — buscando...";
+                            "🔎 Buscando marcador...";
+
+                        instructions.textContent =
+                            "Apunta la cámara al marcador de Arizona.";
 
                     }
                 );
 
+
+                /* =================================================
+                   MODELO CARGADO
+                   ================================================= */
+
+                model.addEventListener(
+                    "model-loaded",
+                    () => {
+
+                        console.log(
+                            "✅ EnOrigen2.glb cargado"
+                        );
+
+
+                        debug.textContent =
+                            "✅ GLB cargado. Ajustando modelo...";
+
+
+                        const object =
+                            model.getObject3D(
+                                "mesh"
+                            );
+
+
+                        if (!object) {
+
+                            debug.textContent =
+                                "⚠️ GLB cargado, pero no se encontró mesh.";
+
+                            console.warn(
+                                "No existe mesh en el modelo."
+                            );
+
+                            return;
+
+                        }
+
+
+                        /* =========================================
+                           CALCULAR BOUNDING BOX
+                           ========================================= */
+
+                        const box =
+                            new THREE.Box3()
+                                .setFromObject(object);
+
+
+                        const size =
+                            new THREE.Vector3();
+
+
+                        const center =
+                            new THREE.Vector3();
+
+
+                        box.getSize(size);
+
+                        box.getCenter(center);
+
+
+                        console.log(
+                            "Tamaño del modelo:",
+                            size
+                        );
+
+
+                        console.log(
+                            "Centro del modelo:",
+                            center
+                        );
+
+
+                        /* =========================================
+                           CENTRAR MALLA
+                           ========================================= */
+
+                        object.position.x -= center.x;
+
+                        object.position.z -= center.z;
+
+
+                        /*
+                         * Colocamos la parte inferior
+                         * aproximadamente sobre Y = 0.
+                         */
+
+                        object.position.y -= box.min.y;
+
+
+                        /* =========================================
+                           ESCALA AUTOMÁTICA
+                           ========================================= */
+
+                        const alturaDeseada = 0.8;
+
+
+                        if (size.y > 0) {
+
+                            const escala =
+                                alturaDeseada / size.y;
+
+
+                            model.object3D.scale.set(
+                                escala,
+                                escala,
+                                escala
+                            );
+
+
+                            console.log(
+                                "Escala aplicada:",
+                                escala
+                            );
+
+
+                            debug.textContent =
+                                "✅ GLB cargado y centrado | escala: " +
+                                escala.toFixed(3);
+
+                        } else {
+
+                            debug.textContent =
+                                "⚠️ Tamaño vertical del modelo = 0";
+
+                        }
+
+                    }
+                );
+
+
+                /* =================================================
+                   ERROR DEL MODELO
+                   ================================================= */
+
+                model.addEventListener(
+                    "model-error",
+                    event => {
+
+                        console.error(
+                            "❌ ERROR CARGANDO EnOrigen2.glb",
+                            event
+                        );
+
+
+                        debug.textContent =
+                            "❌ Error cargando EnOrigen2.glb";
+
+
+                        /*
+                         * Ojo:
+                         * MindAR seguirá funcionando aunque falle
+                         * el modelo.
+                         */
+
+                    }
+                );
+
+
+                /* =================================================
+                   COMPROBAR RUTA DEL GLB
+                   ================================================= */
+
+                fetch(
+                    "assets/models/EnOrigen2.glb"
+                )
+                .then(response => {
+
+                    if (!response.ok) {
+
+                        throw new Error(
+                            "HTTP " + response.status
+                        );
+
+                    }
+
+
+                    console.log(
+                        "✅ Ruta GLB accesible:",
+                        response.status
+                    );
+
+                })
+                .catch(error => {
+
+                    console.error(
+                        "❌ Ruta GLB no disponible:",
+                        error
+                    );
+
+
+                    debug.textContent =
+                        "❌ No se encuentra assets/models/EnOrigen2.glb";
+
+                });
+
             }
         );
-const model = document.getElementById(
-    "arizona-model-3d"
-);
 
-model.addEventListener(
-    "model-loaded",
-    () => {
-
-        console.log(
-            "✅ GLB cargado correctamente"
-        );
-
-        status.textContent =
-            "✅ Modelo cargado — busca el marcador";
-
-
-        const object =
-            model.getObject3D("mesh");
-
-
-        if (!object) {
-
-            console.error(
-                "No se encontró el objeto 3D interno"
-            );
-
-            return;
-        }
-
-
-        // =====================================================
-        // CALCULAR DIMENSIONES REALES DEL MODELO
-        // =====================================================
-
-        const box =
-            new THREE.Box3().setFromObject(object);
-
-
-        const size =
-            new THREE.Vector3();
-
-
-        const center =
-            new THREE.Vector3();
-
-
-        box.getSize(size);
-
-        box.getCenter(center);
-
-
-        console.log(
-            "Tamaño original:",
-            size
-        );
-
-
-        console.log(
-            "Centro original:",
-            center
-        );
-
-
-        // =====================================================
-        // CENTRAR EL MODELO
-        // =====================================================
-
-        object.position.x -= center.x;
-
-        // Los pies quedan apoyados aproximadamente en Y = 0
-        object.position.y -= box.min.y;
-
-        object.position.z -= center.z;
-
-
-        // =====================================================
-        // ESCALAR AUTOMÁTICAMENTE
-        // =====================================================
-
-        const alturaDeseada = 0.8;
-
-        const escala =
-            alturaDeseada / size.y;
-
-
-        model.object3D.scale.set(
-            escala,
-            escala,
-            escala
-        );
-
-
-        console.log(
-            "Escala aplicada:",
-            escala
-        );
-
-
-        console.log(
-            "✅ Modelo centrado automáticamente"
-        );
-
-    }
-);
-
-
-model.addEventListener(
-    "model-error",
-    event => {
-
-        console.error(
-            "❌ ERROR CARGANDO GLB",
-            event
-        );
-
-        status.textContent =
-            "❌ El archivo GLB no pudo cargarse";
-
-    }
-);
     </script>
 
 
