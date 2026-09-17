@@ -62,25 +62,6 @@
         }
 
 
-        #instructions {
-            position: fixed;
-            left: 50%;
-            bottom: 24px;
-            transform: translateX(-50%);
-            z-index: 99999;
-            width: calc(100% - 40px);
-            max-width: 420px;
-            padding: 10px 14px;
-            background: rgba(0, 0, 0, 0.72);
-            color: white;
-            border-radius: 12px;
-            font-family: Arial, sans-serif;
-            font-size: 13px;
-            text-align: center;
-            pointer-events: none;
-        }
-
-
         #back-button {
             position: fixed;
 
@@ -99,6 +80,88 @@
             font-family: Arial, sans-serif;
 
             text-decoration: none;
+        }
+
+
+        #instructions {
+            position: fixed;
+
+            left: 50%;
+            bottom: 82px;
+
+            transform: translateX(-50%);
+
+            z-index: 99999;
+
+            width: calc(100% - 40px);
+            max-width: 420px;
+
+            padding: 10px 14px;
+
+            background: rgba(0, 0, 0, 0.72);
+            color: white;
+
+            border-radius: 12px;
+
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+
+            text-align: center;
+
+            pointer-events: none;
+        }
+
+
+        #ar-controls {
+            position: fixed;
+
+            left: 50%;
+            bottom: 20px;
+
+            transform: translateX(-50%);
+
+            z-index: 100000;
+
+            display: flex;
+            justify-content: center;
+
+            width: calc(100% - 40px);
+            max-width: 420px;
+
+            pointer-events: none;
+        }
+
+
+        #toggle-motion {
+            min-width: 190px;
+            min-height: 46px;
+
+            padding: 10px 18px;
+
+            border: 1px solid #d4af37;
+            border-radius: 12px;
+
+            background: rgba(10, 17, 40, 0.9);
+            color: white;
+
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            font-weight: bold;
+
+            cursor: pointer;
+
+            pointer-events: auto;
+        }
+
+
+        #toggle-motion:disabled {
+            opacity: 0.45;
+            cursor: default;
+        }
+
+
+        #toggle-motion.active {
+            color: #d4af37;
         }
 
     </style>
@@ -121,9 +184,24 @@
         Iniciando AR...
     </div>
 
+
     <div id="instructions">
-        Apunta la cámara al marcador de Minnesota Twins.
+        Apunta la cámara al marcador de prueba.
     </div>
+
+
+    <div id="ar-controls">
+
+        <button
+            id="toggle-motion"
+            type="button"
+            disabled
+        >
+            ⏸ Pausar animación
+        </button>
+
+    </div>
+
 
 
     <!-- =====================================================
@@ -135,8 +213,8 @@
         id="ar-scene"
 
         mindar-image="
-    imageTargetSrc: assets/ar/targets/arizona-target.mind;
-"
+            imageTargetSrc: assets/ar/targets/arizona-target.mind?v=5;
+        "
 
         color-space="sRGB"
 
@@ -160,7 +238,7 @@
 
             <a-asset-item
                 id="twinsModel"
-                src="assets/models/EnOrigen2.glb?v=3">
+                src="assets/models/EnOrigen2.glb?v=5">
             </a-asset-item>
 
         </a-assets>
@@ -183,22 +261,43 @@
 
         <!-- =================================================
              MARCADOR
+
+             TEMPORAL:
+             Se usa el target de Arizona porque ya sabemos
+             que es estable. Más adelante sustituiremos el
+             archivo .mind por el target definitivo.
              ================================================= -->
 
         <a-entity
 
-            id="minnesota-target"
+            id="ar-target"
 
             mindar-image-target="targetIndex: 0"
 
         >
 
 
-            <!-- Modelo Minnesota -->
+            <!-- =============================================
+                 PARTÍCULAS
+
+                 JavaScript genera pequeñas partículas dentro
+                 de este contenedor.
+                 ============================================= -->
+
+            <a-entity
+                id="particle-group"
+                position="0 0 0">
+            </a-entity>
+
+
+
+            <!-- =============================================
+                 MODELO
+                 ============================================= -->
 
             <a-gltf-model
 
-                id="minnesota-model-3d"
+                id="player-model"
 
                 src="#twinsModel"
 
@@ -219,7 +318,7 @@
 
 
     <!-- =====================================================
-         EVENTOS
+         LÓGICA AR
          ===================================================== -->
 
     <script>
@@ -233,18 +332,360 @@
 
 
                 const target =
-                    document.getElementById("minnesota-target");
+                    document.getElementById("ar-target");
 
 
                 const model =
-                    document.getElementById("minnesota-model-3d");
+                    document.getElementById("player-model");
+
+
+                const particleGroup =
+                    document.getElementById("particle-group");
 
 
                 const status =
                     document.getElementById("status");
 
+
                 const instructions =
                     document.getElementById("instructions");
+
+
+                const toggleMotion =
+                    document.getElementById("toggle-motion");
+
+
+
+                // =============================================
+                // ESTADO DE LA ANIMACIÓN
+                // =============================================
+
+                let targetVisible = false;
+
+                let userPaused = false;
+
+                let modelLoaded = false;
+
+                let previousTime = performance.now();
+
+
+                const baseModelPosition = {
+                    x: 0,
+                    y: 0,
+                    z: 0.1
+                };
+
+
+                // Movimiento vertical suave
+                const FLOAT_HEIGHT = 0.045;
+
+                const FLOAT_SPEED = 0.0024;
+
+
+                // Velocidad de rotación en radianes / milisegundo
+                // Aproximadamente una vuelta cada 11-12 segundos.
+                const ROTATION_SPEED = 0.00055;
+
+
+
+                // =============================================
+                // PARTÍCULAS
+                // =============================================
+
+                const particles = [];
+
+                const PARTICLE_COUNT = 20;
+
+
+                function randomBetween(min, max) {
+
+                    return Math.random() * (max - min) + min;
+
+                }
+
+
+                function createParticles() {
+
+                    for (
+                        let i = 0;
+                        i < PARTICLE_COUNT;
+                        i++
+                    ) {
+
+                        const particle =
+                            document.createElement("a-sphere");
+
+
+                        const radius =
+                            randomBetween(0.008, 0.018);
+
+
+                        const particleData = {
+
+                            x: randomBetween(-0.42, 0.42),
+
+                            y: randomBetween(0.02, 0.82),
+
+                            z: randomBetween(-0.15, 0.18),
+
+                            speed: randomBetween(
+                                0.00006,
+                                0.00014
+                            ),
+
+                            drift: randomBetween(
+                                0.6,
+                                1.6
+                            ),
+
+                            phase: randomBetween(
+                                0,
+                                Math.PI * 2
+                            )
+
+                        };
+
+
+                        particle.setAttribute(
+                            "radius",
+                            radius
+                        );
+
+
+                        particle.setAttribute(
+                            "segments-height",
+                            8
+                        );
+
+
+                        particle.setAttribute(
+                            "segments-width",
+                            8
+                        );
+
+
+                        /*
+                         * Alternamos partículas doradas y claras.
+                         * Esto mantiene una estética de museo/
+                         * celebración sin cargar texturas externas.
+                         */
+
+                        const color =
+                            i % 3 === 0
+                                ? "#fff4c2"
+                                : "#d4af37";
+
+
+                        particle.setAttribute(
+                            "material",
+                            `
+                                color: ${color};
+                                opacity: 0.82;
+                                transparent: true;
+                                shader: flat;
+                            `
+                        );
+
+
+                        particle.object3D.position.set(
+                            particleData.x,
+                            particleData.y,
+                            particleData.z
+                        );
+
+
+                        particleGroup.appendChild(
+                            particle
+                        );
+
+
+                        particles.push({
+                            element: particle,
+                            ...particleData
+                        });
+
+                    }
+
+                }
+
+
+
+                // =============================================
+                // PAUSAR / REANUDAR
+                // =============================================
+
+                function updatePauseButton() {
+
+                    if (userPaused) {
+
+                        toggleMotion.textContent =
+                            "▶ Reanudar animación";
+
+                        toggleMotion.classList.add(
+                            "active"
+                        );
+
+                    } else {
+
+                        toggleMotion.textContent =
+                            "⏸ Pausar animación";
+
+                        toggleMotion.classList.remove(
+                            "active"
+                        );
+
+                    }
+
+                }
+
+
+                toggleMotion.addEventListener(
+                    "click",
+                    () => {
+
+                        if (
+                            !targetVisible ||
+                            !modelLoaded
+                        ) {
+                            return;
+                        }
+
+
+                        userPaused = !userPaused;
+
+                        updatePauseButton();
+
+                    }
+                );
+
+
+
+                // =============================================
+                // LOOP DE ANIMACIÓN
+                // =============================================
+
+                function animate(currentTime) {
+
+                    const delta =
+                        Math.min(
+                            currentTime - previousTime,
+                            50
+                        );
+
+
+                    previousTime =
+                        currentTime;
+
+
+                    if (
+                        targetVisible &&
+                        modelLoaded &&
+                        !userPaused
+                    ) {
+
+                        // -------------------------------------
+                        // MOVIMIENTO FLOTANTE
+                        // -------------------------------------
+
+                        model.object3D.position.y =
+                            baseModelPosition.y +
+                            Math.sin(
+                                currentTime *
+                                FLOAT_SPEED
+                            ) *
+                            FLOAT_HEIGHT;
+
+
+                        // -------------------------------------
+                        // ROTACIÓN CONTINUA
+                        // -------------------------------------
+
+                        model.object3D.rotation.y +=
+                            delta *
+                            ROTATION_SPEED;
+
+
+                        // -------------------------------------
+                        // PARTÍCULAS
+                        // -------------------------------------
+
+                        particles.forEach(
+                            (particle, index) => {
+
+                                particle.y +=
+                                    delta *
+                                    particle.speed;
+
+
+                                /*
+                                 * Pequeño desplazamiento lateral
+                                 * para que no suban como columnas
+                                 * perfectamente rectas.
+                                 */
+
+                                const offsetX =
+                                    Math.sin(
+                                        currentTime *
+                                        0.001 *
+                                        particle.drift +
+                                        particle.phase
+                                    ) *
+                                    0.025;
+
+
+                                particle.element
+                                    .object3D
+                                    .position
+                                    .set(
+                                        particle.x +
+                                        offsetX,
+
+                                        particle.y,
+
+                                        particle.z
+                                    );
+
+
+                                /*
+                                 * Cuando una partícula llega arriba,
+                                 * reaparece en la parte inferior.
+                                 */
+
+                                if (particle.y > 0.9) {
+
+                                    particle.y =
+                                        randomBetween(
+                                            0.01,
+                                            0.12
+                                        );
+
+
+                                    particle.x =
+                                        randomBetween(
+                                            -0.42,
+                                            0.42
+                                        );
+
+
+                                    particle.z =
+                                        randomBetween(
+                                            -0.15,
+                                            0.18
+                                        );
+
+                                }
+
+                            }
+                        );
+
+                    }
+
+
+                    requestAnimationFrame(
+                        animate
+                    );
+
+                }
 
 
 
@@ -260,7 +701,7 @@
                             "✅ Cámara lista — buscando marcador";
 
                         instructions.textContent =
-                            "Apunta la cámara al marcador de Minnesota Twins.";
+                            "Apunta la cámara al marcador de prueba.";
 
                         console.log(
                             "✅ MindAR iniciado"
@@ -300,14 +741,23 @@
                     "targetFound",
                     () => {
 
+                        targetVisible = true;
+
+
                         status.textContent =
-                            "🎯 MINNESOTA DETECTADO";
+                            "🎯 MARCADOR DETECTADO";
+
 
                         instructions.textContent =
-                            "Modelo 3D de Minnesota Twins activo.";
+                            "Modelo activo: movimiento, rotación y partículas.";
+
+
+                        toggleMotion.disabled =
+                            !modelLoaded;
+
 
                         console.log(
-                            "✅ Minnesota detectado"
+                            "✅ Marcador detectado"
                         );
 
                     }
@@ -323,11 +773,19 @@
                     "targetLost",
                     () => {
 
+                        targetVisible = false;
+
+
                         status.textContent =
                             "🔎 Buscando marcador...";
 
+
                         instructions.textContent =
-                            "Vuelve a enfocar el marcador de Minnesota Twins.";
+                            "Vuelve a enfocar el marcador.";
+
+
+                        toggleMotion.disabled =
+                            true;
 
                     }
                 );
@@ -341,6 +799,25 @@
                 model.addEventListener(
                     "model-loaded",
                     () => {
+
+                        modelLoaded = true;
+
+
+                        /*
+                         * Nos aseguramos de conservar la posición
+                         * base antes de iniciar el movimiento.
+                         */
+
+                        model.object3D.position.set(
+                            baseModelPosition.x,
+                            baseModelPosition.y,
+                            baseModelPosition.z
+                        );
+
+
+                        toggleMotion.disabled =
+                            !targetVisible;
+
 
                         console.log(
                             "✅ EnOrigen2.glb cargado"
@@ -362,12 +839,31 @@
                         status.textContent =
                             "⚠️ Error cargando modelo";
 
+
+                        toggleMotion.disabled =
+                            true;
+
+
                         console.error(
                             "GLB error:",
                             event
                         );
 
                     }
+                );
+
+
+
+                // =============================================
+                // INICIALIZACIÓN
+                // =============================================
+
+                createParticles();
+
+                updatePauseButton();
+
+                requestAnimationFrame(
+                    animate
                 );
 
             }
