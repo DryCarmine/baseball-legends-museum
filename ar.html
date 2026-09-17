@@ -87,14 +87,14 @@
             position: fixed;
 
             left: 50%;
-            bottom: 82px;
+            bottom: 132px;
 
             transform: translateX(-50%);
 
             z-index: 99999;
 
             width: calc(100% - 40px);
-            max-width: 420px;
+            max-width: 440px;
 
             padding: 10px 14px;
 
@@ -122,46 +122,89 @@
 
             z-index: 100000;
 
-            display: flex;
-            justify-content: center;
+            display: grid;
 
-            width: calc(100% - 40px);
-            max-width: 420px;
+            grid-template-columns:
+                repeat(3, minmax(0, 1fr));
+
+            gap: 8px;
+
+            width: calc(100% - 30px);
+            max-width: 460px;
 
             pointer-events: none;
         }
 
 
-        #toggle-motion {
-            min-width: 190px;
-            min-height: 46px;
+        .ar-control-button {
+            min-height: 48px;
 
-            padding: 10px 18px;
+            padding: 9px 8px;
 
             border: 1px solid #d4af37;
             border-radius: 12px;
 
-            background: rgba(10, 17, 40, 0.9);
+            background: rgba(10, 17, 40, 0.92);
             color: white;
 
             font-family: Arial, sans-serif;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: bold;
 
             cursor: pointer;
 
             pointer-events: auto;
+
+            touch-action: manipulation;
         }
 
 
-        #toggle-motion:disabled {
-            opacity: 0.45;
+        .ar-control-button:active:not(:disabled) {
+            transform: scale(0.96);
+        }
+
+
+        .ar-control-button:disabled {
+            opacity: 0.42;
             cursor: default;
         }
 
 
-        #toggle-motion.active {
+        .ar-control-button.active {
             color: #d4af37;
+        }
+
+
+        #toggle-motion {
+            grid-column: 1 / span 2;
+        }
+
+
+        #toggle-particles {
+            grid-column: 3;
+        }
+
+
+        @media (max-width: 380px) {
+
+            #ar-controls {
+                gap: 6px;
+            }
+
+
+            .ar-control-button {
+                min-height: 46px;
+
+                padding: 8px 5px;
+
+                font-size: 12px;
+            }
+
+
+            #instructions {
+                bottom: 126px;
+            }
+
         }
 
     </style>
@@ -190,14 +233,49 @@
     </div>
 
 
+    <!-- =====================================================
+         CONTROLES AR
+         ===================================================== -->
+
     <div id="ar-controls">
 
         <button
-            id="toggle-motion"
+            id="rotate-left"
+            class="ar-control-button"
             type="button"
             disabled
         >
-            ⏸ Pausar animación
+            ↶ Izquierda
+        </button>
+
+
+        <button
+            id="rotate-right"
+            class="ar-control-button"
+            type="button"
+            disabled
+        >
+            Derecha ↷
+        </button>
+
+
+        <button
+            id="toggle-particles"
+            class="ar-control-button active"
+            type="button"
+            disabled
+        >
+            ✨ Partículas
+        </button>
+
+
+        <button
+            id="toggle-motion"
+            class="ar-control-button"
+            type="button"
+            disabled
+        >
+            ⏸ Pausar movimiento
         </button>
 
     </div>
@@ -213,7 +291,7 @@
         id="ar-scene"
 
         mindar-image="
-            imageTargetSrc: assets/ar/targets/arizona-target.mind?v=5;
+            imageTargetSrc: assets/ar/targets/arizona-target.mind?v=6;
         "
 
         color-space="sRGB"
@@ -238,7 +316,7 @@
 
             <a-asset-item
                 id="twinsModel"
-                src="assets/models/EnOrigen2.glb?v=5">
+                src="assets/models/EnOrigen2.glb?v=6">
             </a-asset-item>
 
         </a-assets>
@@ -263,9 +341,7 @@
              MARCADOR
 
              TEMPORAL:
-             Se usa el target de Arizona porque ya sabemos
-             que es estable. Más adelante sustituiremos el
-             archivo .mind por el target definitivo.
+             Usamos Arizona porque su target ya es estable.
              ================================================= -->
 
         <a-entity
@@ -279,9 +355,6 @@
 
             <!-- =============================================
                  PARTÍCULAS
-
-                 JavaScript genera pequeñas partículas dentro
-                 de este contenedor.
                  ============================================= -->
 
             <a-entity
@@ -351,20 +424,34 @@
                     document.getElementById("instructions");
 
 
+                const rotateLeft =
+                    document.getElementById("rotate-left");
+
+
+                const rotateRight =
+                    document.getElementById("rotate-right");
+
+
                 const toggleMotion =
                     document.getElementById("toggle-motion");
 
 
+                const toggleParticles =
+                    document.getElementById("toggle-particles");
+
+
 
                 // =============================================
-                // ESTADO DE LA ANIMACIÓN
+                // ESTADO
                 // =============================================
 
                 let targetVisible = false;
 
-                let userPaused = false;
-
                 let modelLoaded = false;
+
+                let movementPaused = false;
+
+                let particlesEnabled = true;
 
                 let previousTime = performance.now();
 
@@ -376,15 +463,15 @@
                 };
 
 
-                // Movimiento vertical suave
+                // Movimiento flotante
                 const FLOAT_HEIGHT = 0.045;
 
                 const FLOAT_SPEED = 0.0024;
 
 
-                // Velocidad de rotación en radianes / milisegundo
-                // Aproximadamente una vuelta cada 11-12 segundos.
-                const ROTATION_SPEED = 0.00055;
+                // 15 grados por pulsación
+                const ROTATION_STEP =
+                    Math.PI / 12;
 
 
 
@@ -464,12 +551,6 @@
                         );
 
 
-                        /*
-                         * Alternamos partículas doradas y claras.
-                         * Esto mantiene una estética de museo/
-                         * celebración sin cargar texturas externas.
-                         */
-
                         const color =
                             i % 3 === 0
                                 ? "#fff4c2"
@@ -511,15 +592,87 @@
 
 
                 // =============================================
-                // PAUSAR / REANUDAR
+                // HABILITAR / DESHABILITAR CONTROLES
                 // =============================================
 
-                function updatePauseButton() {
+                function updateControls() {
 
-                    if (userPaused) {
+                    const enabled =
+                        targetVisible &&
+                        modelLoaded;
+
+
+                    rotateLeft.disabled =
+                        !enabled;
+
+
+                    rotateRight.disabled =
+                        !enabled;
+
+
+                    toggleMotion.disabled =
+                        !enabled;
+
+
+                    toggleParticles.disabled =
+                        !enabled;
+
+                }
+
+
+
+                // =============================================
+                // ROTACIÓN MANUAL
+                // =============================================
+
+                function rotateModel(direction) {
+
+                    if (
+                        !targetVisible ||
+                        !modelLoaded
+                    ) {
+                        return;
+                    }
+
+
+                    model.object3D.rotation.y +=
+                        ROTATION_STEP *
+                        direction;
+
+                }
+
+
+                rotateLeft.addEventListener(
+                    "click",
+                    () => {
+
+                        rotateModel(1);
+
+                    }
+                );
+
+
+                rotateRight.addEventListener(
+                    "click",
+                    () => {
+
+                        rotateModel(-1);
+
+                    }
+                );
+
+
+
+                // =============================================
+                // PAUSAR MOVIMIENTO FLOTANTE
+                // =============================================
+
+                function updateMovementButton() {
+
+                    if (movementPaused) {
 
                         toggleMotion.textContent =
-                            "▶ Reanudar animación";
+                            "▶ Reanudar movimiento";
 
                         toggleMotion.classList.add(
                             "active"
@@ -528,7 +681,7 @@
                     } else {
 
                         toggleMotion.textContent =
-                            "⏸ Pausar animación";
+                            "⏸ Pausar movimiento";
 
                         toggleMotion.classList.remove(
                             "active"
@@ -551,9 +704,81 @@
                         }
 
 
-                        userPaused = !userPaused;
+                        movementPaused =
+                            !movementPaused;
 
-                        updatePauseButton();
+
+                        /*
+                         * Al pausar, regresamos lentamente la
+                         * posición al centro para evitar que
+                         * quede congelado arriba o abajo.
+                         */
+
+                        if (movementPaused) {
+
+                            model.object3D.position.y =
+                                baseModelPosition.y;
+
+                        }
+
+
+                        updateMovementButton();
+
+                    }
+                );
+
+
+
+                // =============================================
+                // ACTIVAR / QUITAR PARTÍCULAS
+                // =============================================
+
+                function updateParticlesButton() {
+
+                    particleGroup.object3D.visible =
+                        particlesEnabled;
+
+
+                    if (particlesEnabled) {
+
+                        toggleParticles.textContent =
+                            "✨ Partículas";
+
+                        toggleParticles.classList.add(
+                            "active"
+                        );
+
+                    } else {
+
+                        toggleParticles.textContent =
+                            "○ Sin partículas";
+
+                        toggleParticles.classList.remove(
+                            "active"
+                        );
+
+                    }
+
+                }
+
+
+                toggleParticles.addEventListener(
+                    "click",
+                    () => {
+
+                        if (
+                            !targetVisible ||
+                            !modelLoaded
+                        ) {
+                            return;
+                        }
+
+
+                        particlesEnabled =
+                            !particlesEnabled;
+
+
+                        updateParticlesButton();
 
                     }
                 );
@@ -579,104 +804,93 @@
 
                     if (
                         targetVisible &&
-                        modelLoaded &&
-                        !userPaused
+                        modelLoaded
                     ) {
 
                         // -------------------------------------
                         // MOVIMIENTO FLOTANTE
                         // -------------------------------------
 
-                        model.object3D.position.y =
-                            baseModelPosition.y +
-                            Math.sin(
-                                currentTime *
-                                FLOAT_SPEED
-                            ) *
-                            FLOAT_HEIGHT;
+                        if (!movementPaused) {
 
+                            model.object3D.position.y =
+                                baseModelPosition.y +
+                                Math.sin(
+                                    currentTime *
+                                    FLOAT_SPEED
+                                ) *
+                                FLOAT_HEIGHT;
 
-                        // -------------------------------------
-                        // ROTACIÓN CONTINUA
-                        // -------------------------------------
-
-                        model.object3D.rotation.y +=
-                            delta *
-                            ROTATION_SPEED;
+                        }
 
 
                         // -------------------------------------
                         // PARTÍCULAS
                         // -------------------------------------
 
-                        particles.forEach(
-                            (particle, index) => {
+                        if (particlesEnabled) {
 
-                                particle.y +=
-                                    delta *
-                                    particle.speed;
+                            particles.forEach(
+                                particle => {
 
-
-                                /*
-                                 * Pequeño desplazamiento lateral
-                                 * para que no suban como columnas
-                                 * perfectamente rectas.
-                                 */
-
-                                const offsetX =
-                                    Math.sin(
-                                        currentTime *
-                                        0.001 *
-                                        particle.drift +
-                                        particle.phase
-                                    ) *
-                                    0.025;
+                                    particle.y +=
+                                        delta *
+                                        particle.speed;
 
 
-                                particle.element
-                                    .object3D
-                                    .position
-                                    .set(
-                                        particle.x +
-                                        offsetX,
-
-                                        particle.y,
-
-                                        particle.z
-                                    );
+                                    const offsetX =
+                                        Math.sin(
+                                            currentTime *
+                                            0.001 *
+                                            particle.drift +
+                                            particle.phase
+                                        ) *
+                                        0.025;
 
 
-                                /*
-                                 * Cuando una partícula llega arriba,
-                                 * reaparece en la parte inferior.
-                                 */
+                                    particle.element
+                                        .object3D
+                                        .position
+                                        .set(
+                                            particle.x +
+                                            offsetX,
 
-                                if (particle.y > 0.9) {
+                                            particle.y,
 
-                                    particle.y =
-                                        randomBetween(
-                                            0.01,
-                                            0.12
+                                            particle.z
                                         );
 
 
-                                    particle.x =
-                                        randomBetween(
-                                            -0.42,
-                                            0.42
-                                        );
+                                    if (
+                                        particle.y > 0.9
+                                    ) {
+
+                                        particle.y =
+                                            randomBetween(
+                                                0.01,
+                                                0.12
+                                            );
 
 
-                                    particle.z =
-                                        randomBetween(
-                                            -0.15,
-                                            0.18
-                                        );
+                                        particle.x =
+                                            randomBetween(
+                                                -0.42,
+                                                0.42
+                                            );
+
+
+                                        particle.z =
+                                            randomBetween(
+                                                -0.15,
+                                                0.18
+                                            );
+
+                                    }
 
                                 }
+                            );
 
-                            }
-                        );
+                        }
 
                     }
 
@@ -749,11 +963,10 @@
 
 
                         instructions.textContent =
-                            "Modelo activo: movimiento, rotación y partículas.";
+                            "Usa los controles para mover el modelo y personalizar el efecto.";
 
 
-                        toggleMotion.disabled =
-                            !modelLoaded;
+                        updateControls();
 
 
                         console.log(
@@ -784,8 +997,7 @@
                             "Vuelve a enfocar el marcador.";
 
 
-                        toggleMotion.disabled =
-                            true;
+                        updateControls();
 
                     }
                 );
@@ -803,11 +1015,6 @@
                         modelLoaded = true;
 
 
-                        /*
-                         * Nos aseguramos de conservar la posición
-                         * base antes de iniciar el movimiento.
-                         */
-
                         model.object3D.position.set(
                             baseModelPosition.x,
                             baseModelPosition.y,
@@ -815,8 +1022,7 @@
                         );
 
 
-                        toggleMotion.disabled =
-                            !targetVisible;
+                        updateControls();
 
 
                         console.log(
@@ -840,8 +1046,10 @@
                             "⚠️ Error cargando modelo";
 
 
-                        toggleMotion.disabled =
-                            true;
+                        modelLoaded = false;
+
+
+                        updateControls();
 
 
                         console.error(
@@ -860,7 +1068,12 @@
 
                 createParticles();
 
-                updatePauseButton();
+                updateMovementButton();
+
+                updateParticlesButton();
+
+                updateControls();
+
 
                 requestAnimationFrame(
                     animate
