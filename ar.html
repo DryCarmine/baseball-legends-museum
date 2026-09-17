@@ -2,14 +2,16 @@
 <html lang="es">
 
 <head>
+
     <meta charset="UTF-8">
 
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        content="width=device-width, initial-scale=1"
     >
 
     <title>Baseball Legends Museum - AR</title>
+
 
     <!-- MindAR -->
     <script
@@ -21,7 +23,7 @@
         src="https://aframe.io/releases/1.2.0/aframe.min.js">
     </script>
 
-    <!-- MindAR + A-Frame -->
+    <!-- Integración MindAR + A-Frame -->
     <script
         src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image-aframe.prod.js">
     </script>
@@ -29,149 +31,74 @@
 
     <style>
 
-        * {
-            box-sizing: border-box;
-        }
-
-        html,
         body {
             margin: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background: #000;
-            font-family: Arial, sans-serif;
         }
 
 
-        /* ================================================
-           INTERFAZ SUPERIOR
-           ================================================ */
-
-        #ar-header {
+        #status {
             position: fixed;
 
-            top: 0;
-            left: 0;
+            top: 20px;
+            left: 50%;
 
-            width: 100%;
+            transform: translateX(-50%);
 
-            z-index: 100000;
+            z-index: 99999;
 
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
+            padding: 10px 18px;
 
-            padding: 18px 14px;
+            background: rgba(0, 0, 0, 0.75);
+            color: white;
 
+            border-radius: 18px;
+
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+
+            text-align: center;
+
+            pointer-events: none;
+        }
+
+
+        #instructions {
+            position: fixed;
+            left: 50%;
+            bottom: 24px;
+            transform: translateX(-50%);
+            z-index: 99999;
+            width: calc(100% - 40px);
+            max-width: 420px;
+            padding: 10px 14px;
+            background: rgba(0, 0, 0, 0.72);
+            color: white;
+            border-radius: 12px;
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+            text-align: center;
             pointer-events: none;
         }
 
 
         #back-button {
-            pointer-events: auto;
-
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-
-            padding: 11px 15px;
-
-            background: rgba(10, 17, 40, 0.88);
-            color: #f5f5dc;
-
-            border: 1px solid #d4af37;
-            border-radius: 10px;
-
-            text-decoration: none;
-
-            font-size: 14px;
-            font-weight: bold;
-
-            backdrop-filter: blur(6px);
-        }
-
-
-        #ar-status {
-            max-width: 220px;
-
-            padding: 11px 16px;
-
-            background: rgba(10, 17, 40, 0.88);
-            color: white;
-
-            border: 1px solid rgba(212, 175, 55, 0.7);
-            border-radius: 16px;
-
-            text-align: center;
-
-            font-size: 13px;
-            font-weight: bold;
-
-            backdrop-filter: blur(6px);
-        }
-
-
-        /* ================================================
-           PANEL INFERIOR
-           ================================================ */
-
-        #ar-info {
             position: fixed;
 
-            bottom: 20px;
-            left: 50%;
-
-            transform: translateX(-50%);
+            top: 20px;
+            left: 15px;
 
             z-index: 100000;
 
-            width: calc(100% - 30px);
-            max-width: 440px;
+            padding: 10px 14px;
 
-            padding: 14px 18px;
-
-            background: rgba(10, 17, 40, 0.88);
+            background: rgba(0, 0, 0, 0.75);
             color: white;
 
-            border: 1px solid #d4af37;
-            border-radius: 14px;
+            border-radius: 8px;
 
-            text-align: center;
+            font-family: Arial, sans-serif;
 
-            backdrop-filter: blur(8px);
-
-            pointer-events: none;
-        }
-
-
-        #ar-info-title {
-            display: block;
-
-            margin-bottom: 4px;
-
-            color: #d4af37;
-
-            font-size: 12px;
-            font-weight: bold;
-            letter-spacing: 1.5px;
-        }
-
-
-        #ar-info-text {
-            margin: 0;
-
-            font-size: 13px;
-            line-height: 1.35;
-        }
-
-
-        /* ================================================
-           ESTADOS
-           ================================================ */
-
-        .status-found {
-            border-color: #4caf50 !important;
+            text-decoration: none;
         }
 
     </style>
@@ -182,44 +109,26 @@
 <body>
 
 
-    <!-- ==================================================
-         UI
-         ================================================== -->
-
-    <header id="ar-header">
-
-        <a
-            id="back-button"
-            href="index.html"
-        >
-            ← Volver
-        </a>
+    <a
+        id="back-button"
+        href="index.html"
+    >
+        ← Volver
+    </a>
 
 
-        <div id="ar-status">
-            Iniciando cámara...
-        </div>
+    <div id="status">
+        Iniciando AR...
+    </div>
 
-    </header>
-
-
-    <div id="ar-info">
-
-        <span id="ar-info-title">
-            BASEBALL LEGENDS AR
-        </span>
-
-        <p id="ar-info-text">
-            Apunta la cámara al marcador de Minnesota Twins.
-        </p>
-
+    <div id="instructions">
+        Apunta la cámara al marcador de Minnesota Twins.
     </div>
 
 
-
-    <!-- ==================================================
+    <!-- =====================================================
          ESCENA AR
-         ================================================== -->
+         ===================================================== -->
 
     <a-scene
 
@@ -232,9 +141,8 @@
         color-space="sRGB"
 
         renderer="
-            colorManagement: true;
-            physicallyCorrectLights: true;
-            antialias: true;
+            colorManagement: true,
+            physicallyCorrectLights
         "
 
         vr-mode-ui="enabled: false"
@@ -244,68 +152,64 @@
     >
 
 
-        <!-- ==============================================
+        <!-- =================================================
              ASSETS
-             ============================================== -->
+             ================================================= -->
 
         <a-assets>
 
             <a-asset-item
-                id="minnesota-model"
+                id="twinsModel"
                 src="assets/models/EnOrigen2.glb?v=3">
             </a-asset-item>
 
         </a-assets>
 
 
-        <!-- ==============================================
-             ILUMINACIÓN
-             ============================================== -->
 
-        <a-light
-            type="ambient"
-            intensity="1.4">
-        </a-light>
-
-
-        <a-light
-            type="directional"
-            position="1 2 1"
-            intensity="1.2">
-        </a-light>
-
-
-        <!-- ==============================================
+        <!-- =================================================
              CÁMARA
-             ============================================== -->
+             ================================================= -->
 
         <a-camera
+
             position="0 0 0"
+
             look-controls="enabled: false">
+
         </a-camera>
 
 
-        <!-- ==============================================
-             MINNESOTA TWINS
-             TARGET 0
-             ============================================== -->
+
+        <!-- =================================================
+             MARCADOR
+             ================================================= -->
 
         <a-entity
+
             id="minnesota-target"
+
             mindar-image-target="targetIndex: 0"
+
         >
 
+
+            <!-- Modelo Minnesota -->
+
             <a-gltf-model
+
                 id="minnesota-model-3d"
 
-                src="#minnesota-model"
+                src="#twinsModel"
 
                 position="0 0 0.1"
 
                 rotation="0 0 0"
 
                 scale="0.12 0.12 0.12">
+
             </a-gltf-model>
+
 
         </a-entity>
 
@@ -314,9 +218,9 @@
 
 
 
-    <!-- ==================================================
-         CONTROL DE ESTADOS
-         ================================================== -->
+    <!-- =====================================================
+         EVENTOS
+         ===================================================== -->
 
     <script>
 
@@ -325,69 +229,61 @@
             () => {
 
                 const scene =
-                    document.getElementById(
-                        "ar-scene"
-                    );
+                    document.getElementById("ar-scene");
 
 
                 const target =
-                    document.getElementById(
-                        "minnesota-target"
-                    );
+                    document.getElementById("minnesota-target");
 
 
                 const model =
-                    document.getElementById(
-                        "minnesota-model-3d"
-                    );
+                    document.getElementById("minnesota-model-3d");
 
 
                 const status =
-                    document.getElementById(
-                        "ar-status"
-                    );
+                    document.getElementById("status");
+
+                const instructions =
+                    document.getElementById("instructions");
 
 
-                const info =
-                    document.getElementById(
-                        "ar-info-text"
-                    );
 
-
-                /* ==========================================
-                   MINDAR LISTO
-                   ========================================== */
+                // =============================================
+                // MINDAR LISTO
+                // =============================================
 
                 scene.addEventListener(
                     "arReady",
                     () => {
 
                         status.textContent =
-                            "🔎 Buscando marcador";
+                            "✅ Cámara lista — buscando marcador";
 
-                        info.textContent =
+                        instructions.textContent =
                             "Apunta la cámara al marcador de Minnesota Twins.";
+
+                        console.log(
+                            "✅ MindAR iniciado"
+                        );
 
                     }
                 );
 
 
-                /* ==========================================
-                   ERROR DE MINDAR
-                   ========================================== */
+
+                // =============================================
+                // ERROR AR
+                // =============================================
 
                 scene.addEventListener(
                     "arError",
-                    event => {
+                    (event) => {
 
                         status.textContent =
-                            "❌ Error de cámara";
-
-                        info.textContent =
-                            "No fue posible iniciar la experiencia AR.";
+                            "❌ Error iniciando AR";
 
                         console.error(
-                            "MindAR:",
+                            "MindAR error:",
                             event
                         );
 
@@ -395,80 +291,81 @@
                 );
 
 
-                /* ==========================================
-                   MARCADOR ENCONTRADO
-                   ========================================== */
+
+                // =============================================
+                // MARCADOR ENCONTRADO
+                // =============================================
 
                 target.addEventListener(
                     "targetFound",
                     () => {
 
                         status.textContent =
-                            "🎯 Minnesota detectado";
+                            "🎯 MINNESOTA DETECTADO";
 
-                        status.classList.add(
-                            "status-found"
-                        );
-
-
-                        info.textContent =
+                        instructions.textContent =
                             "Modelo 3D de Minnesota Twins activo.";
+
+                        console.log(
+                            "✅ Minnesota detectado"
+                        );
 
                     }
                 );
 
 
-                /* ==========================================
-                   MARCADOR PERDIDO
-                   ========================================== */
+
+                // =============================================
+                // MARCADOR PERDIDO
+                // =============================================
 
                 target.addEventListener(
                     "targetLost",
                     () => {
 
                         status.textContent =
-                            "🔎 Buscando marcador";
+                            "🔎 Buscando marcador...";
 
-                        status.classList.remove(
-                            "status-found"
-                        );
-
-
-                        info.textContent =
+                        instructions.textContent =
                             "Vuelve a enfocar el marcador de Minnesota Twins.";
 
                     }
                 );
 
 
-                /* ==========================================
-                   MODELO CARGADO
-                   ========================================== */
+
+                // =============================================
+                // MODELO CARGADO
+                // =============================================
 
                 model.addEventListener(
                     "model-loaded",
                     () => {
 
                         console.log(
-                            "✅ Modelo Minnesota cargado correctamente."
+                            "✅ EnOrigen2.glb cargado"
                         );
 
                     }
                 );
 
 
+
+                // =============================================
+                // ERROR DEL MODELO
+                // =============================================
+
                 model.addEventListener(
                     "model-error",
-                    event => {
+                    (event) => {
+
+                        status.textContent =
+                            "⚠️ Error cargando modelo";
 
                         console.error(
-                            "❌ Error cargando EnOrigen2.glb:",
+                            "GLB error:",
                             event
                         );
-
-
-                        info.textContent =
-                            "El marcador funciona, pero hubo un error cargando el modelo.";
 
                     }
                 );
