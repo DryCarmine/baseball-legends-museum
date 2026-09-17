@@ -83,9 +83,14 @@
         🎬<br>Filtros
     </button>
 
-    <button class="nav-item" data-vista="ar" id="btn-ar">
-        📷<br>AR
-    </button>
+    <button
+    class="nav-item"
+    id="btn-ar"
+    type="button"
+    onclick="window.location.href='ar.html'"
+>
+    📷<br>AR
+</button>
 </nav>
 
     </div>
@@ -94,11 +99,8 @@
     <!-- teams.js debe cargarse antes de app.js porque app.js utilizará MLB_TEAMS -->
 <script src="js/teams.js"></script>
 <script src="js/trivia.js"></script>
-<script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 <script src="js/partidos.js"></script>
 <script src="js/app.js"></script>
-<script src="js/ar.js"></script>
 <script src="js/gallery.js"></script>
 </body>
 </html>

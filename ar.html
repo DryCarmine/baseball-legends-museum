@@ -1,158 +1,484 @@
-<section class="ar-page">
+<!DOCTYPE html>
+<html lang="es">
 
-    <!-- Interfaz superpuesta -->
-    <div class="ar-interface">
+<head>
+    <meta charset="UTF-8">
 
-        <div class="ar-top-panel">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    >
 
-            <div>
-                <span class="ar-eyebrow">
-                    BASEBALL LEGENDS AR
-                </span>
+    <title>Baseball Legends Museum - AR</title>
 
-                <h2>
-                    Arizona Diamondbacks
-                </h2>
-            </div>
+    <!-- MindAR -->
+    <script
+        src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image.prod.js">
+    </script>
 
-            <div id="ar-status" class="ar-status">
-                Cámara detenida
-            </div>
+    <!-- A-Frame -->
+    <script
+        src="https://aframe.io/releases/1.2.0/aframe.min.js">
+    </script>
 
-        </div>
-
-
-        <div id="ar-instructions" class="ar-instructions">
-
-            <div class="ar-instructions-icon">
-                📷
-            </div>
-
-            <h3>
-                Escanea el marcador
-            </h3>
-
-            <p>
-                Apunta la cámara al logotipo de los
-                Arizona Diamondbacks.
-            </p>
-
-        </div>
+    <!-- MindAR + A-Frame -->
+    <script
+        src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image-aframe.prod.js">
+    </script>
 
 
-        <button
-            id="btn-start-ar"
-            class="ar-start-button"
-            type="button"
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+            font-family: Arial, sans-serif;
+        }
+
+
+        /* ================================================
+           INTERFAZ SUPERIOR
+           ================================================ */
+
+        #ar-header {
+            position: fixed;
+
+            top: 0;
+            left: 0;
+
+            width: 100%;
+
+            z-index: 100000;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+
+            padding: 18px 14px;
+
+            pointer-events: none;
+        }
+
+
+        #back-button {
+            pointer-events: auto;
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 11px 15px;
+
+            background: rgba(10, 17, 40, 0.88);
+            color: #f5f5dc;
+
+            border: 1px solid #d4af37;
+            border-radius: 10px;
+
+            text-decoration: none;
+
+            font-size: 14px;
+            font-weight: bold;
+
+            backdrop-filter: blur(6px);
+        }
+
+
+        #ar-status {
+            max-width: 220px;
+
+            padding: 11px 16px;
+
+            background: rgba(10, 17, 40, 0.88);
+            color: white;
+
+            border: 1px solid rgba(212, 175, 55, 0.7);
+            border-radius: 16px;
+
+            text-align: center;
+
+            font-size: 13px;
+            font-weight: bold;
+
+            backdrop-filter: blur(6px);
+        }
+
+
+        /* ================================================
+           PANEL INFERIOR
+           ================================================ */
+
+        #ar-info {
+            position: fixed;
+
+            bottom: 20px;
+            left: 50%;
+
+            transform: translateX(-50%);
+
+            z-index: 100000;
+
+            width: calc(100% - 30px);
+            max-width: 440px;
+
+            padding: 14px 18px;
+
+            background: rgba(10, 17, 40, 0.88);
+            color: white;
+
+            border: 1px solid #d4af37;
+            border-radius: 14px;
+
+            text-align: center;
+
+            backdrop-filter: blur(8px);
+
+            pointer-events: none;
+        }
+
+
+        #ar-info-title {
+            display: block;
+
+            margin-bottom: 4px;
+
+            color: #d4af37;
+
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 1.5px;
+        }
+
+
+        #ar-info-text {
+            margin: 0;
+
+            font-size: 13px;
+            line-height: 1.35;
+        }
+
+
+        /* ================================================
+           ESTADOS
+           ================================================ */
+
+        .status-found {
+            border-color: #4caf50 !important;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- ==================================================
+         UI
+         ================================================== -->
+
+    <header id="ar-header">
+
+        <a
+            id="back-button"
+            href="index.html"
         >
-            ACTIVAR CÁMARA
-        </button>
+            ← Volver
+        </a>
+
+
+        <div id="ar-status">
+            Iniciando cámara...
+        </div>
+
+    </header>
+
+
+    <div id="ar-info">
+
+        <span id="ar-info-title">
+            BASEBALL LEGENDS AR
+        </span>
+
+        <p id="ar-info-text">
+            Apunta la cámara al marcador de Minnesota Twins.
+        </p>
 
     </div>
 
 
-    <!-- =====================================================
-         ESCENA DE REALIDAD AUMENTADA
-         ===================================================== -->
 
-    <div id="ar-scene-container">
+    <!-- ==================================================
+         ESCENA AR
+         ================================================== -->
 
-        <a-scene
-            id="ar-scene"
+    <a-scene
 
-            embedded
+        id="ar-scene"
 
-            mindar-image="
-                imageTargetSrc: https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/image-tracking/assets/card-example/card.mind;
-                autoStart: false;
-                uiLoading: no;
-                uiScanning: no;
-                uiError: no;
-            "
+        mindar-image="
+            imageTargetSrc: assets/ar/targets/minnesota-target.mind;
+        "
 
-            color-space="sRGB"
+        color-space="sRGB"
 
-            renderer="
-                colorManagement: true;
-                physicallyCorrectLights: true;
-                antialias: true;
-            "
+        renderer="
+            colorManagement: true;
+            physicallyCorrectLights: true;
+            antialias: true;
+        "
 
-            vr-mode-ui="enabled: false"
+        vr-mode-ui="enabled: false"
 
-            device-orientation-permission-ui="enabled: false"
+        device-orientation-permission-ui="enabled: false"
+
+    >
+
+
+        <!-- ==============================================
+             ASSETS
+             ============================================== -->
+
+        <a-assets>
+
+            <a-asset-item
+                id="minnesota-model"
+                src="assets/models/EnOrigen2.glb?v=3">
+            </a-asset-item>
+
+        </a-assets>
+
+
+        <!-- ==============================================
+             ILUMINACIÓN
+             ============================================== -->
+
+        <a-light
+            type="ambient"
+            intensity="1.4">
+        </a-light>
+
+
+        <a-light
+            type="directional"
+            position="1 2 1"
+            intensity="1.2">
+        </a-light>
+
+
+        <!-- ==============================================
+             CÁMARA
+             ============================================== -->
+
+        <a-camera
+            position="0 0 0"
+            look-controls="enabled: false">
+        </a-camera>
+
+
+        <!-- ==============================================
+             MINNESOTA TWINS
+             TARGET 0
+             ============================================== -->
+
+        <a-entity
+            id="minnesota-target"
+            mindar-image-target="targetIndex: 0"
         >
 
+            <a-gltf-model
+                id="minnesota-model-3d"
 
-            <!-- =============================================
-                 ASSETS
-                 ============================================= -->
+                src="#minnesota-model"
 
-            <a-assets timeout="15000">
+                position="0 0 0.1"
 
-                <a-asset-item
-                    id="arizona-model"
-                    src="assets/models/ArizonaDiamonds.glb">
-                </a-asset-item>
+                rotation="0 0 0"
 
-            </a-assets>
+                scale="0.12 0.12 0.12">
+            </a-gltf-model>
 
-
-            <!-- =============================================
-                 ILUMINACIÓN
-                 ============================================= -->
-
-            <a-light
-                type="ambient"
-                intensity="1.2">
-            </a-light>
-
-            <a-light
-                type="directional"
-                intensity="1.5"
-                position="1 2 1">
-            </a-light>
+        </a-entity>
 
 
-            <!-- =============================================
-                 CÁMARA
-                 ============================================= -->
-
-            <a-camera
-                position="0 0 0"
-                look-controls="enabled: false">
-            </a-camera>
+    </a-scene>
 
 
-            <!-- =============================================
-                 MARCADOR 0
-                 ============================================= -->
 
-            <a-entity
-                id="arizona-target"
-                mindar-image-target="targetIndex: 0"
-            >
+    <!-- ==================================================
+         CONTROL DE ESTADOS
+         ================================================== -->
 
-                <!-- Modelo -->
+    <script>
 
-                <a-gltf-model
-                    id="arizona-3d-model"
+        document.addEventListener(
+            "DOMContentLoaded",
+            () => {
 
-                    src="#arizona-model"
+                const scene =
+                    document.getElementById(
+                        "ar-scene"
+                    );
 
-                    position="0 0 0.1"
 
-                    rotation="0 0 0"
+                const target =
+                    document.getElementById(
+                        "minnesota-target"
+                    );
 
-                    scale="0.4 0.4 0.4"
 
-                    visible="true">
-                </a-gltf-model>
+                const model =
+                    document.getElementById(
+                        "minnesota-model-3d"
+                    );
 
-            </a-entity>
 
-        </a-scene>
+                const status =
+                    document.getElementById(
+                        "ar-status"
+                    );
 
-    </div>
 
-</section>
+                const info =
+                    document.getElementById(
+                        "ar-info-text"
+                    );
+
+
+                /* ==========================================
+                   MINDAR LISTO
+                   ========================================== */
+
+                scene.addEventListener(
+                    "arReady",
+                    () => {
+
+                        status.textContent =
+                            "🔎 Buscando marcador";
+
+                        info.textContent =
+                            "Apunta la cámara al marcador de Minnesota Twins.";
+
+                    }
+                );
+
+
+                /* ==========================================
+                   ERROR DE MINDAR
+                   ========================================== */
+
+                scene.addEventListener(
+                    "arError",
+                    event => {
+
+                        status.textContent =
+                            "❌ Error de cámara";
+
+                        info.textContent =
+                            "No fue posible iniciar la experiencia AR.";
+
+                        console.error(
+                            "MindAR:",
+                            event
+                        );
+
+                    }
+                );
+
+
+                /* ==========================================
+                   MARCADOR ENCONTRADO
+                   ========================================== */
+
+                target.addEventListener(
+                    "targetFound",
+                    () => {
+
+                        status.textContent =
+                            "🎯 Minnesota detectado";
+
+                        status.classList.add(
+                            "status-found"
+                        );
+
+
+                        info.textContent =
+                            "Modelo 3D de Minnesota Twins activo.";
+
+                    }
+                );
+
+
+                /* ==========================================
+                   MARCADOR PERDIDO
+                   ========================================== */
+
+                target.addEventListener(
+                    "targetLost",
+                    () => {
+
+                        status.textContent =
+                            "🔎 Buscando marcador";
+
+                        status.classList.remove(
+                            "status-found"
+                        );
+
+
+                        info.textContent =
+                            "Vuelve a enfocar el marcador de Minnesota Twins.";
+
+                    }
+                );
+
+
+                /* ==========================================
+                   MODELO CARGADO
+                   ========================================== */
+
+                model.addEventListener(
+                    "model-loaded",
+                    () => {
+
+                        console.log(
+                            "✅ Modelo Minnesota cargado correctamente."
+                        );
+
+                    }
+                );
+
+
+                model.addEventListener(
+                    "model-error",
+                    event => {
+
+                        console.error(
+                            "❌ Error cargando EnOrigen2.glb:",
+                            event
+                        );
+
+
+                        info.textContent =
+                            "El marcador funciona, pero hubo un error cargando el modelo.";
+
+                    }
+                );
+
+            }
+        );
+
+    </script>
+
+
+</body>
+
+</html>
