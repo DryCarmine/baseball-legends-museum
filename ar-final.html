@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    >
+
+    <title>Baseball Legends Museum - AR</title>
+
+    <!-- MindAR -->
+    <script
+        src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image.prod.js">
+    </script>
+
+    <!-- A-Frame -->
+    <script
+        src="https://aframe.io/releases/1.2.0/aframe.min.js">
+    </script>
+
+    <!-- MindAR + A-Frame -->
+    <script
+        src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image-aframe.prod.js">
+    </script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+
+        #status {
+            position: fixed;
+            top: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 99999;
+
+            max-width: 58%;
+            padding: 10px 16px;
+
+            background: rgba(0, 0, 0, 0.76);
+            color: white;
+
+            border: 1px solid rgba(212, 175, 55, 0.75);
+            border-radius: 18px;
+
+            font-size: 13px;
+            font-weight: bold;
+            text-align: center;
+
+            pointer-events: none;
+        }
+
+        #back-button {
+            position: fixed;
+            top: 18px;
+            left: 14px;
+            z-index: 100000;
+
+            min-height: 42px;
+            padding: 10px 14px;
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            background: rgba(10, 17, 40, 0.88);
+            color: #f5f5dc;
+
+            border: 1px solid #d4af37;
+            border-radius: 10px;
+
+            font-size: 13px;
+            font-weight: bold;
+            text-decoration: none;
+
+            backdrop-filter: blur(6px);
+        }
+
+        #team-name {
+            position: fixed;
+            top: 74px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 99999;
+
+            max-width: calc(100% - 30px);
+            padding: 8px 14px;
+
+            background: rgba(10, 17, 40, 0.85);
+            color: #d4af37;
+
+            border: 1px solid rgba(212, 175, 55, 0.65);
+            border-radius: 14px;
+
+            font-size: 13px;
+            font-weight: bold;
+            text-align: center;
+
+            pointer-events: none;
+        }
+
+        #instructions {
+            position: fixed;
+            left: 50%;
+            bottom: 138px;
+            transform: translateX(-50%);
+            z-index: 99999;
+
+            width: calc(100% - 30px);
+            max-width: 460px;
+
+            padding: 10px 14px;
+
+            background: rgba(0, 0, 0, 0.72);
+            color: white;
+
+            border-radius: 12px;
+
+            font-size: 13px;
+            line-height: 1.35;
+            text-align: center;
+
+            pointer-events: none;
+        }
+
+        #ar-controls {
+            position: fixed;
+            left: 50%;
+            bottom: 18px;
+            transform: translateX(-50%);
+            z-index: 100000;
+
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+
+            width: calc(100% - 30px);
+            max-width: 460px;
+
+            pointer-events: none;
+        }
+
+        .ar-control-button {
+            min-height: 50px;
+            padding: 8px 7px;
+
+            border: 1px solid #d4af37;
+            border-radius: 12px;
+
+            background: rgba(10, 17, 40, 0.92);
+            color: white;
+
+            font-size: 12px;
+            font-weight: bold;
+
+            cursor: pointer;
+            pointer-events: auto;
+            touch-action: manipulation;
+        }
+
+        .ar-control-button:active:not(:disabled) {
+            transform: scale(0.96);
+        }
+
+        .ar-control-button:disabled {
+            opacity: 0.42;
+            cursor: default;
+        }
+
+        .ar-control-button.active {
+            color: #d4af37;
+        }
+
+        #toggle-motion {
+            grid-column: 1 / span 2;
+        }
+
+        #capture-photo {
+            grid-column: 3;
+        }
+
+        @media (max-width: 380px) {
+            #status {
+                max-width: 54%;
+                padding: 9px 12px;
+                font-size: 12px;
+            }
+
+            #team-name {
+                top: 70px;
+                font-size: 12px;
+            }
+
+            #ar-controls {
+                gap: 6px;
+            }
+
+            .ar-control-button {
+                min-height: 47px;
+                padding: 7px 5px;
+                font-size: 11px;
+            }
+
+            #instructions {
+                bottom: 132px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <a
+        id="back-button"
+        href="index.html"
+    >
+        ← Volver
+    </a>
+
+    <div id="status">
+        Iniciando AR...
+    </div>
+
+    <div id="team-name">
+        Equipo activo: ninguno
+    </div>
+
+    <div id="instructions">
+        Apunta la cámara a una de las 5 tarjetas Topps configuradas.
+    </div>
+
+    <div id="ar-controls">
+
+        <button
+            id="rotate-left"
+            class="ar-control-button"
+            type="button"
+            disabled
+        >
+            ↶ Izquierda
+        </button>
+
+        <button
+            id="rotate-right"
+            class="ar-control-button"
+            type="button"
+            disabled
+        >
+            Derecha ↷
+        </button>
+
+        <button
+            id="toggle-particles"
+            class="ar-control-button active"
+            type="button"
+            disabled
+        >
+            ✨ Partículas
+        </button>
+
+        <button
+            id="toggle-motion"
+            class="ar-control-button"
+            type="button"
+            disabled
+        >
+            ⏸ Pausar movimiento
+        </button>
+
+        <button
+            id="capture-photo"
+            class="ar-control-button"
+            type="button"
+            disabled
+        >
+            📸 Foto
+        </button>
+
+    </div>
+
+
+    <a-scene
+        id="ar-scene"
+
+        mindar-image="
+            imageTargetSrc: assets/ar/targets/five-teams-targets.mind?v=1;
+        "
+
+        color-space="sRGB"
+
+        renderer="
+            colorManagement: true;
+            physicallyCorrectLights: true;
+            alpha: true;
+            preserveDrawingBuffer: true;
+        "
+
+        vr-mode-ui="enabled: false"
+
+        device-orientation-permission-ui="enabled: false"
+    >
+
+        <a-assets>
+            <a-asset-item
+                id="asset-brewers"
+                src="assets/models/Brewers.glb?v=1">
+            </a-asset-item>
+
+            <a-asset-item
+                id="asset-cubs"
+                src="assets/models/ChicagoCubs.glb?v=1">
+            </a-asset-item>
+
+            <a-asset-item
+                id="asset-twins"
+                src="assets/models/EnOrigen2.glb?v=1">
+            </a-asset-item>
+
+            <a-asset-item
+                id="asset-braves"
+                src="assets/models/Braves.glb?v=1">
+            </a-asset-item>
+
+            <a-asset-item
+                id="asset-dbacks"
+                src="assets/models/ArizonaDiamonds.glb?v=1">
+            </a-asset-item>
+        </a-assets>
+
+        <a-camera
+            position="0 0 0"
+            look-controls="enabled: false">
+        </a-camera>
+
+        <!-- 0 - Brewers -->
+        <a-entity
+            id="target-brewers"
+            mindar-image-target="targetIndex: 0"
+        >
+            <a-entity id="root-brewers" position="0 0 0.1">
+                <a-entity id="particles-brewers"></a-entity>
+                <a-gltf-model
+                    id="model-brewers"
+                    src="#asset-brewers"
+                    position="-33.59 -2.80 4.77"
+                    rotation="0 0 0"
+                    scale="0.12 0.12 0.12">
+                </a-gltf-model>
+            </a-entity>
+        </a-entity>
+
+        <!-- 1 - Cubs -->
+        <a-entity
+            id="target-cubs"
+            mindar-image-target="targetIndex: 1"
+        >
+            <a-entity id="root-cubs" position="0 0 0.1">
+                <a-entity id="particles-cubs"></a-entity>
+                <a-gltf-model
+                    id="model-cubs"
+                    src="#asset-cubs"
+                    position="-33.59 -2.80 4.77"
+                    rotation="0 0 0"
+                    scale="0.12 0.12 0.12">
+                </a-gltf-model>
+            </a-entity>
+        </a-entity>
+
+        <!-- 2 - Twins -->
+        <a-entity
+            id="target-twins"
+            mindar-image-target="targetIndex: 2"
+        >
+            <a-entity id="root-twins" position="0 0 0.1">
+                <a-entity id="particles-twins"></a-entity>
+                <a-gltf-model
+                    id="model-twins"
+                    src="#asset-twins"
+                    position="0 0 0"
+                    rotation="0 0 0"
+                    scale="0.12 0.12 0.12">
+                </a-gltf-model>
+            </a-entity>
+        </a-entity>
+
+        <!-- 3 - Braves -->
+        <a-entity
+            id="target-braves"
+            mindar-image-target="targetIndex: 3"
+        >
+            <a-entity id="root-braves" position="0 0 0.1">
+                <a-entity id="particles-braves"></a-entity>
+                <a-gltf-model
+                    id="model-braves"
+                    src="#asset-braves"
+                    position="-33.59 -2.80 4.77"
+                    rotation="0 0 0"
+                    scale="0.12 0.12 0.12">
+                </a-gltf-model>
+            </a-entity>
+        </a-entity>
+
+        <!-- 4 - Diamondbacks -->
+        <a-entity
+            id="target-dbacks"
+            mindar-image-target="targetIndex: 4"
+        >
+            <a-entity id="root-dbacks" position="0 0 0.1">
+                <a-entity id="particles-dbacks"></a-entity>
+                <a-gltf-model
+                    id="model-dbacks"
+                    src="#asset-dbacks"
+                    position="-33.59 -2.80 4.77"
+                    rotation="0 0 0"
+                    scale="0.12 0.12 0.12">
+                </a-gltf-model>
+            </a-entity>
+        </a-entity>
+
+    </a-scene>
+
+    <script src="js/arfinal.js?v=multi1"></script>
+
+</body>
+
+</html>
