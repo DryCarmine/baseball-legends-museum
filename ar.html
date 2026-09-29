@@ -278,6 +278,16 @@
             ⏸ Pausar movimiento
         </button>
 
+
+        <button
+            id="capture-photo"
+            class="ar-control-button"
+            type="button"
+            disabled
+        >
+            📸 Foto
+        </button>
+
     </div>
 
 
@@ -297,8 +307,10 @@
         color-space="sRGB"
 
         renderer="
-            colorManagement: true,
-            physicallyCorrectLights
+            colorManagement: true;
+            physicallyCorrectLights: true;
+            alpha: true;
+            preserveDrawingBuffer: true;
         "
 
         vr-mode-ui="enabled: false"
@@ -438,6 +450,10 @@
 
                 const toggleParticles =
                     document.getElementById("toggle-particles");
+
+
+                const capturePhoto =
+                    document.getElementById("capture-photo");
 
 
 
@@ -617,6 +633,10 @@
                     toggleParticles.disabled =
                         !enabled;
 
+
+                    capturePhoto.disabled =
+                        !enabled;
+
                 }
 
 
@@ -781,6 +801,315 @@
                         updateParticlesButton();
 
                     }
+                );
+
+
+
+                // =============================================
+                // TOMAR FOTO AR
+                // =============================================
+
+                function drawVideoCover(
+                    context,
+                    video,
+                    outputWidth,
+                    outputHeight
+                ) {
+
+                    const sourceWidth =
+                        video.videoWidth;
+
+                    const sourceHeight =
+                        video.videoHeight;
+
+
+                    const sourceRatio =
+                        sourceWidth / sourceHeight;
+
+                    const outputRatio =
+                        outputWidth / outputHeight;
+
+
+                    let sourceX = 0;
+                    let sourceY = 0;
+
+                    let cropWidth =
+                        sourceWidth;
+
+                    let cropHeight =
+                        sourceHeight;
+
+
+                    /*
+                     * MindAR muestra el video cubriendo la pantalla.
+                     * Recortamos el video con la misma lógica de
+                     * object-fit: cover para que el modelo quede
+                     * alineado con la fotografía.
+                     */
+
+                    if (sourceRatio > outputRatio) {
+
+                        cropWidth =
+                            sourceHeight * outputRatio;
+
+                        sourceX =
+                            (sourceWidth - cropWidth) / 2;
+
+                    } else {
+
+                        cropHeight =
+                            sourceWidth / outputRatio;
+
+                        sourceY =
+                            (sourceHeight - cropHeight) / 2;
+
+                    }
+
+
+                    context.drawImage(
+                        video,
+                        sourceX,
+                        sourceY,
+                        cropWidth,
+                        cropHeight,
+                        0,
+                        0,
+                        outputWidth,
+                        outputHeight
+                    );
+
+                }
+
+
+                function takeARPhoto() {
+
+                    if (
+                        !targetVisible ||
+                        !modelLoaded
+                    ) {
+                        return;
+                    }
+
+
+                    try {
+
+                        const video =
+                            document.querySelector("video");
+
+
+                        const arCanvas =
+                            scene.canvas ||
+                            (scene.renderer &&
+                                scene.renderer.domElement);
+
+
+                        if (
+                            !video ||
+                            !arCanvas ||
+                            !video.videoWidth ||
+                            !video.videoHeight
+                        ) {
+
+                            throw new Error(
+                                "La cámara o el canvas AR todavía no están listos."
+                            );
+
+                        }
+
+
+                        const width =
+                            arCanvas.width;
+
+                        const height =
+                            arCanvas.height;
+
+
+                        const photoCanvas =
+                            document.createElement("canvas");
+
+                        photoCanvas.width =
+                            width;
+
+                        photoCanvas.height =
+                            height;
+
+
+                        const context =
+                            photoCanvas.getContext("2d");
+
+
+                        if (!context) {
+
+                            throw new Error(
+                                "No se pudo crear la fotografía."
+                            );
+
+                        }
+
+
+                        // 1. Cámara real
+                        drawVideoCover(
+                            context,
+                            video,
+                            width,
+                            height
+                        );
+
+
+                        // 2. Modelo 3D y partículas
+                        context.drawImage(
+                            arCanvas,
+                            0,
+                            0,
+                            width,
+                            height
+                        );
+
+
+                        // 3. Marca discreta del museo
+                        context.save();
+
+                        context.font =
+                            `${Math.max(
+                                16,
+                                Math.round(width * 0.024)
+                            )}px Arial`;
+
+                        context.textAlign =
+                            "right";
+
+                        context.textBaseline =
+                            "bottom";
+
+                        context.fillStyle =
+                            "rgba(255, 255, 255, 0.92)";
+
+                        context.shadowColor =
+                            "rgba(0, 0, 0, 0.8)";
+
+                        context.shadowBlur =
+                            5;
+
+                        context.fillText(
+                            "Baseball Legends Museum AR",
+                            width - 18,
+                            height - 18
+                        );
+
+                        context.restore();
+
+
+                        // 4. Crear PNG y descargarlo
+                        photoCanvas.toBlob(
+                            blob => {
+
+                                if (!blob) {
+
+                                    status.textContent =
+                                        "⚠️ No se pudo generar la foto";
+
+                                    return;
+
+                                }
+
+
+                                const imageURL =
+                                    URL.createObjectURL(blob);
+
+                                const link =
+                                    document.createElement("a");
+
+                                const now =
+                                    new Date();
+
+                                const timestamp =
+                                    [
+                                        now.getFullYear(),
+                                        String(
+                                            now.getMonth() + 1
+                                        ).padStart(2, "0"),
+                                        String(
+                                            now.getDate()
+                                        ).padStart(2, "0"),
+                                        "-",
+                                        String(
+                                            now.getHours()
+                                        ).padStart(2, "0"),
+                                        String(
+                                            now.getMinutes()
+                                        ).padStart(2, "0"),
+                                        String(
+                                            now.getSeconds()
+                                        ).padStart(2, "0")
+                                    ].join("");
+
+
+                                link.href =
+                                    imageURL;
+
+                                link.download =
+                                    `baseball-legends-ar-${timestamp}.png`;
+
+
+                                document.body.appendChild(
+                                    link
+                                );
+
+                                link.click();
+
+                                link.remove();
+
+
+                                setTimeout(
+                                    () => {
+
+                                        URL.revokeObjectURL(
+                                            imageURL
+                                        );
+
+                                    },
+                                    2000
+                                );
+
+
+                                status.textContent =
+                                    "📸 Foto capturada";
+
+
+                                setTimeout(
+                                    () => {
+
+                                        status.textContent =
+                                            targetVisible
+                                                ? "🎯 MARCADOR DETECTADO"
+                                                : "🔎 Buscando marcador...";
+
+                                    },
+                                    1500
+                                );
+
+                            },
+                            "image/png"
+                        );
+
+                    } catch (error) {
+
+                        console.error(
+                            "Error al tomar la foto AR:",
+                            error
+                        );
+
+                        status.textContent =
+                            "⚠️ Error al tomar la foto";
+
+                    }
+
+                }
+
+
+                capturePhoto.addEventListener(
+                    "click",
+                    takeARPhoto
                 );
 
 
