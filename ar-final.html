@@ -1,15 +1,5 @@
-console.log("✅ arfinal.js cargado");
-
-const bootStatus =
-    document.getElementById("status");
-
-if (bootStatus) {
-    bootStatus.textContent =
-        "✅ JS cargado — preparando AR...";
-}
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
 
@@ -21,19 +11,13 @@ if (bootStatus) {
     <title>Baseball Legends Museum - AR</title>
 
     <!-- MindAR -->
-    <script
-        src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image.prod.js">
-    </script>
+    <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image.prod.js"></script>
 
     <!-- A-Frame -->
-    <script
-        src="https://aframe.io/releases/1.2.0/aframe.min.js">
-    </script>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
 
     <!-- MindAR + A-Frame -->
-    <script
-        src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image-aframe.prod.js">
-    </script>
+    <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image-aframe.prod.js"></script>
 
     <style>
         * {
@@ -56,7 +40,7 @@ if (bootStatus) {
             transform: translateX(-50%);
             z-index: 99999;
 
-            max-width: 58%;
+            max-width: 60%;
             padding: 10px 16px;
 
             background: rgba(0, 0, 0, 0.76);
@@ -94,8 +78,6 @@ if (bootStatus) {
             font-size: 13px;
             font-weight: bold;
             text-decoration: none;
-
-            backdrop-filter: blur(6px);
         }
 
         #team-name {
@@ -203,7 +185,7 @@ if (bootStatus) {
 
         @media (max-width: 380px) {
             #status {
-                max-width: 54%;
+                max-width: 56%;
                 padding: 9px 12px;
                 font-size: 12px;
             }
@@ -233,10 +215,7 @@ if (bootStatus) {
 
 <body>
 
-    <a
-        id="back-button"
-        href="index.html"
-    >
+    <a id="back-button" href="index.html">
         ← Volver
     </a>
 
@@ -249,7 +228,7 @@ if (bootStatus) {
     </div>
 
     <div id="instructions">
-        Apunta la cámara a una de las 5 tarjetas Topps configuradas.
+        Apunta la cámara a una de las 5 tarjetas.
     </div>
 
     <div id="ar-controls">
@@ -306,8 +285,8 @@ if (bootStatus) {
         id="ar-scene"
 
         mindar-image="
-    imageTargetSrc: assets/ar/targets/five-teams-targets.mind?v=2;
-"
+            imageTargetSrc: assets/ar/targets/five-teams-targets.mind?v=3;
+        "
 
         color-space="sRGB"
 
@@ -319,41 +298,14 @@ if (bootStatus) {
         "
 
         vr-mode-ui="enabled: false"
-
         device-orientation-permission-ui="enabled: false"
     >
-
-        <a-assets>
-            <a-asset-item
-                id="asset-brewers"
-                src="assets/models/Brewers.glb?v=1">
-            </a-asset-item>
-
-            <a-asset-item
-                id="asset-cubs"
-                src="assets/models/ChicagoCubs.glb?v=1">
-            </a-asset-item>
-
-            <a-asset-item
-                id="asset-twins"
-                src="assets/models/EnOrigen2.glb?v=1">
-            </a-asset-item>
-
-            <a-asset-item
-                id="asset-braves"
-                src="assets/models/Braves.glb?v=1">
-            </a-asset-item>
-
-            <a-asset-item
-                id="asset-dbacks"
-                src="assets/models/ArizonaDiamonds.glb?v=1">
-            </a-asset-item>
-        </a-assets>
 
         <a-camera
             position="0 0 0"
             look-controls="enabled: false">
         </a-camera>
+
 
         <!-- 0 - Brewers -->
         <a-entity
@@ -362,15 +314,17 @@ if (bootStatus) {
         >
             <a-entity id="root-brewers" position="0 0 0.1">
                 <a-entity id="particles-brewers"></a-entity>
+
                 <a-gltf-model
                     id="model-brewers"
-                    src="#asset-brewers"
-                    position="-33.59 -2.80 4.77"
+                    src="assets/models/Brewers.glb?v=3"
+                    position="-33.59 -6.02 4.77"
                     rotation="0 0 0"
                     scale="0.12 0.12 0.12">
                 </a-gltf-model>
             </a-entity>
         </a-entity>
+
 
         <!-- 1 - Cubs -->
         <a-entity
@@ -379,15 +333,17 @@ if (bootStatus) {
         >
             <a-entity id="root-cubs" position="0 0 0.1">
                 <a-entity id="particles-cubs"></a-entity>
+
                 <a-gltf-model
                     id="model-cubs"
-                    src="#asset-cubs"
-                    position="-33.59 -2.80 4.77"
+                    src="assets/models/ChicagoCubs.glb?v=3"
+                    position="-33.59 -6.02 4.77"
                     rotation="0 0 0"
                     scale="0.12 0.12 0.12">
                 </a-gltf-model>
             </a-entity>
         </a-entity>
+
 
         <!-- 2 - Twins -->
         <a-entity
@@ -396,15 +352,17 @@ if (bootStatus) {
         >
             <a-entity id="root-twins" position="0 0 0.1">
                 <a-entity id="particles-twins"></a-entity>
+
                 <a-gltf-model
                     id="model-twins"
-                    src="#asset-twins"
-                    position="0 0 0"
+                    src="assets/models/EnOrigen2.glb?v=3"
+                    position="0 -0.50 0"
                     rotation="0 0 0"
                     scale="0.12 0.12 0.12">
                 </a-gltf-model>
             </a-entity>
         </a-entity>
+
 
         <!-- 3 - Braves -->
         <a-entity
@@ -413,15 +371,17 @@ if (bootStatus) {
         >
             <a-entity id="root-braves" position="0 0 0.1">
                 <a-entity id="particles-braves"></a-entity>
+
                 <a-gltf-model
                     id="model-braves"
-                    src="#asset-braves"
-                    position="-33.59 -2.80 4.77"
+                    src="assets/models/Braves.glb?v=3"
+                    position="-33.59 -6.02 4.77"
                     rotation="0 0 0"
                     scale="0.12 0.12 0.12">
                 </a-gltf-model>
             </a-entity>
         </a-entity>
+
 
         <!-- 4 - Diamondbacks -->
         <a-entity
@@ -430,10 +390,11 @@ if (bootStatus) {
         >
             <a-entity id="root-dbacks" position="0 0 0.1">
                 <a-entity id="particles-dbacks"></a-entity>
+
                 <a-gltf-model
                     id="model-dbacks"
-                    src="#asset-dbacks"
-                    position="-33.59 -2.80 4.77"
+                    src="assets/models/ArizonaDiamonds.glb?v=3"
+                    position="-33.59 -6.02 4.77"
                     rotation="0 0 0"
                     scale="0.12 0.12 0.12">
                 </a-gltf-model>
@@ -442,8 +403,8 @@ if (bootStatus) {
 
     </a-scene>
 
-    <script src="js/arfinal.js?v=2"></script>
+
+    <script src="js/arfinal.js?v=fix3"></script>
 
 </body>
-
 </html>
