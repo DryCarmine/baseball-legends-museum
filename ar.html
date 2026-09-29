@@ -897,21 +897,73 @@
                             document.querySelector("video");
 
 
-                        const arCanvas =
-                            scene.canvas ||
-                            (scene.renderer &&
-                                scene.renderer.domElement);
+                        const renderer =
+                            scene.renderer;
+
+
+                        const activeCamera =
+                            scene.camera;
 
 
                         if (
                             !video ||
-                            !arCanvas ||
+                            !renderer ||
+                            !activeCamera ||
                             !video.videoWidth ||
                             !video.videoHeight
                         ) {
 
                             throw new Error(
-                                "La cámara o el canvas AR todavía no están listos."
+                                "La cámara o el renderer AR todavía no están listos."
+                            );
+
+                        }
+
+
+                        /*
+                         * IMPORTANTE:
+                         *
+                         * En algunos navegadores móviles el framebuffer
+                         * de WebGL se limpia después de componer cada frame.
+                         * Por eso una copia directa de scene.canvas puede
+                         * contener solamente transparencia.
+                         *
+                         * Forzamos un render NUEVO justo antes de copiarlo
+                         * a la fotografía y esperamos a que la GPU termine.
+                         */
+
+                        renderer.render(
+                            scene.object3D,
+                            activeCamera
+                        );
+
+
+                        const gl =
+                            renderer.getContext();
+
+
+                        if (
+                            gl &&
+                            typeof gl.finish === "function"
+                        ) {
+
+                            gl.finish();
+
+                        }
+
+
+                        const arCanvas =
+                            renderer.domElement;
+
+
+                        if (
+                            !arCanvas ||
+                            !arCanvas.width ||
+                            !arCanvas.height
+                        ) {
+
+                            throw new Error(
+                                "El canvas WebGL no tiene dimensiones válidas."
                             );
 
                         }
@@ -935,7 +987,12 @@
 
 
                         const context =
-                            photoCanvas.getContext("2d");
+                            photoCanvas.getContext(
+                                "2d",
+                                {
+                                    alpha: false
+                                }
+                            );
 
 
                         if (!context) {
@@ -947,7 +1004,10 @@
                         }
 
 
-                        // 1. Cámara real
+                        // =====================================
+                        // 1. CÁMARA REAL
+                        // =====================================
+
                         drawVideoCover(
                             context,
                             video,
@@ -956,7 +1016,16 @@
                         );
 
 
-                        // 2. Modelo 3D y partículas
+                        // =====================================
+                        // 2. CAPA WEBGL: MODELO + PARTÍCULAS
+                        // =====================================
+
+                        context.save();
+
+                        context.globalCompositeOperation =
+                            "source-over";
+
+
                         context.drawImage(
                             arCanvas,
                             0,
@@ -966,7 +1035,13 @@
                         );
 
 
-                        // 3. Marca discreta del museo
+                        context.restore();
+
+
+                        // =====================================
+                        // 3. MARCA DISCRETA DEL MUSEO
+                        // =====================================
+
                         context.save();
 
                         context.font =
@@ -999,7 +1074,10 @@
                         context.restore();
 
 
-                        // 4. Crear PNG y descargarlo
+                        // =====================================
+                        // 4. CREAR PNG Y DESCARGAR
+                        // =====================================
+
                         photoCanvas.toBlob(
                             blob => {
 
@@ -1016,28 +1094,37 @@
                                 const imageURL =
                                     URL.createObjectURL(blob);
 
+
                                 const link =
                                     document.createElement("a");
+
 
                                 const now =
                                     new Date();
 
+
                                 const timestamp =
                                     [
                                         now.getFullYear(),
+
                                         String(
                                             now.getMonth() + 1
                                         ).padStart(2, "0"),
+
                                         String(
                                             now.getDate()
                                         ).padStart(2, "0"),
+
                                         "-",
+
                                         String(
                                             now.getHours()
                                         ).padStart(2, "0"),
+
                                         String(
                                             now.getMinutes()
                                         ).padStart(2, "0"),
+
                                         String(
                                             now.getSeconds()
                                         ).padStart(2, "0")
@@ -1047,6 +1134,7 @@
                                 link.href =
                                     imageURL;
 
+
                                 link.download =
                                     `baseball-legends-ar-${timestamp}.png`;
 
@@ -1055,7 +1143,9 @@
                                     link
                                 );
 
+
                                 link.click();
+
 
                                 link.remove();
 
@@ -1092,6 +1182,7 @@
                             "image/png"
                         );
 
+
                     } catch (error) {
 
                         console.error(
@@ -1099,12 +1190,14 @@
                             error
                         );
 
+
                         status.textContent =
                             "⚠️ Error al tomar la foto";
 
                     }
 
                 }
+
 
 
                 capturePhoto.addEventListener(
