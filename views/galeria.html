@@ -1,16 +1,306 @@
 <section id="galeria-view" class="gallery-view">
 
+    <style>
+        /* Extensión: Archivo Visual + economía del museo */
+
+        .archive-wallet {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            align-items: center;
+            padding: 12px 14px;
+            border: 1px solid rgba(212, 175, 55, 0.28);
+            border-radius: 12px;
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(212,175,55,.09),
+                    rgba(15,23,42,.78)
+                );
+        }
+
+        .archive-wallet-label {
+            min-width: 0;
+        }
+
+        .archive-wallet-label strong {
+            display: block;
+            color: #fff;
+            font-size: .88rem;
+        }
+
+        .archive-wallet-label span {
+            display: block;
+            margin-top: 3px;
+            color: #94a3b8;
+            font-size: .68rem;
+            line-height: 1.35;
+        }
+
+        .archive-wallet-balance {
+            min-width: 82px;
+            padding: 8px 10px;
+            border-radius: 10px;
+            background: rgba(0,0,0,.30);
+            text-align: center;
+        }
+
+        .archive-wallet-balance strong {
+            display: block;
+            color: var(--color-gold, #d4af37);
+            font-size: 1.05rem;
+        }
+
+        .archive-wallet-balance span {
+            display: block;
+            margin-top: 2px;
+            color: #94a3b8;
+            font-size: .56rem;
+            text-transform: uppercase;
+        }
+
+        .archive-progress {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .archive-progress-track {
+            height: 7px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(255,255,255,.08);
+        }
+
+        .archive-progress-fill {
+            width: 0%;
+            height: 100%;
+            border-radius: inherit;
+            background: var(--color-gold, #d4af37);
+            transition: width .25s ease;
+        }
+
+        .archive-progress-text {
+            color: #94a3b8;
+            font-size: .66rem;
+            white-space: nowrap;
+        }
+
+        .gallery-card {
+            position: relative;
+        }
+
+        .gallery-card.locked {
+            border-color: rgba(255,255,255,.08);
+        }
+
+        .gallery-card.locked .gallery-card-image img {
+            filter: blur(8px);
+            opacity: .22;
+            transform: scale(.96);
+        }
+
+        .gallery-card.locked .gallery-card-overlay {
+            opacity: 1;
+            background: rgba(0,0,0,.72);
+            flex-direction: column;
+            gap: 3px;
+            font-weight: 800;
+        }
+
+        .gallery-card.unlocked {
+            border-color: rgba(212,175,55,.20);
+        }
+
+        .gallery-card.unlocked .gallery-card-image img {
+            filter: none;
+            opacity: 1;
+        }
+
+        .gallery-card-price,
+        .gallery-card-owned {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            margin-top: 7px;
+            padding: 4px 7px;
+            border-radius: 999px;
+            font-size: .61rem;
+            font-weight: 900;
+        }
+
+        .gallery-card-price {
+            background: rgba(212,175,55,.11);
+            border: 1px solid rgba(212,175,55,.25);
+            color: var(--color-gold, #d4af37);
+        }
+
+        .gallery-card-owned {
+            background: rgba(42,157,143,.13);
+            border: 1px solid rgba(42,157,143,.27);
+            color: #67d7c9;
+        }
+
+        .gallery-card.favorite-piece::after {
+            content: "★";
+            position: absolute;
+            top: 7px;
+            right: 7px;
+            z-index: 3;
+            width: 23px;
+            height: 23px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            background: var(--color-gold, #d4af37);
+            color: #111;
+            font-size: .68rem;
+            font-weight: 900;
+        }
+
+        .gallery-modal-content.locked-piece #gallery-modal-image {
+            filter: blur(11px);
+            opacity: .22;
+        }
+
+        .gallery-modal-purchase {
+            width: 100%;
+            margin-top: 14px;
+            padding: 11px 13px;
+            border-radius: 10px;
+            border: 1px solid rgba(212,175,55,.34);
+            background: rgba(212,175,55,.08);
+        }
+
+        .gallery-modal-purchase.hidden {
+            display: none;
+        }
+
+        .gallery-modal-price {
+            margin-bottom: 8px;
+            color: #cbd5e1;
+            font-size: .76rem;
+            line-height: 1.45;
+        }
+
+        .gallery-modal-price strong {
+            color: var(--color-gold, #d4af37);
+            font-size: .95rem;
+        }
+
+        .gallery-buy-button {
+            width: 100%;
+            min-height: 44px;
+            padding: 9px 12px;
+            border: none;
+            border-radius: 9px;
+            background: var(--color-gold, #d4af37);
+            color: #111;
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        .gallery-buy-button:disabled {
+            opacity: .43;
+            cursor: default;
+        }
+
+        .gallery-purchase-message {
+            min-height: 18px;
+            margin-top: 7px;
+            color: #94a3b8;
+            font-size: .68rem;
+            line-height: 1.4;
+        }
+
+        .gallery-purchase-message.success {
+            color: #67d7c9;
+        }
+
+        .gallery-purchase-message.error {
+            color: #ff7a86;
+        }
+
+        .archive-gift {
+            padding: 9px 11px;
+            border: 1px solid rgba(212,175,55,.20);
+            border-radius: 10px;
+            background: rgba(212,175,55,.055);
+            color: #cbd5e1;
+            font-size: .68rem;
+            line-height: 1.45;
+        }
+
+        .archive-gift strong {
+            color: var(--color-gold, #d4af37);
+        }
+
+        @media (max-width: 390px) {
+            .archive-wallet {
+                padding: 10px;
+            }
+
+            .archive-wallet-balance {
+                min-width: 70px;
+            }
+        }
+    </style>
+
+
     <header class="gallery-header">
         <div>
             <span class="museum-eyebrow">ARCHIVO VISUAL</span>
-            <h1>Galería MLB</h1>
-            <p>Una colección de emblemas y escenarios de las Grandes Ligas.</p>
+            <h1>Colección MLB</h1>
+            <p>
+                Desbloquea emblemas y estadios con los puntos
+                que obtienes en Trivia y Home Run Derby.
+            </p>
         </div>
 
         <div class="gallery-header-mark" aria-hidden="true">
-            ⚾
+            🏛️
         </div>
     </header>
+
+
+    <section class="archive-wallet">
+        <div class="archive-wallet-label">
+            <strong>Tu saldo del museo</strong>
+            <span>
+                Los desbloqueos son permanentes en este dispositivo.
+            </span>
+        </div>
+
+        <div class="archive-wallet-balance">
+            <strong id="gallery-museum-points">0</strong>
+            <span>Puntos</span>
+        </div>
+    </section>
+
+
+    <div class="archive-progress">
+        <div class="archive-progress-track">
+            <div
+                id="gallery-progress-fill"
+                class="archive-progress-fill">
+            </div>
+        </div>
+
+        <span
+            id="gallery-progress-text"
+            class="archive-progress-text">
+            0 / 36
+        </span>
+    </div>
+
+
+    <div
+        id="gallery-gift-message"
+        class="archive-gift hidden">
+    </div>
+
 
     <section class="gallery-featured-card">
         <div class="gallery-featured-image">
@@ -21,31 +311,49 @@
         </div>
 
         <div class="gallery-featured-content">
-            <span class="museum-eyebrow">PIEZA DESTACADA</span>
-            <h2>Los grandes escenarios del béisbol</h2>
+            <span class="museum-eyebrow">ARCHIVO DEL MUSEO</span>
+
+            <h2>Construye tu propia colección</h2>
+
             <p>
-                Explora la colección visual del Baseball Legends Museum
-                y descubre los equipos que forman parte de la MLB.
+                Los logos cuestan 60 puntos y las fotografías
+                de estadios 180 puntos. Tu primer equipo favorito
+                se añade gratis como pieza de bienvenida.
             </p>
         </div>
     </section>
 
+
     <div class="gallery-toolbar">
+
         <label class="gallery-search">
             <span aria-hidden="true">🔎</span>
+
             <input
                 id="gallery-search-input"
                 type="search"
-                placeholder="Buscar equipo..."
+                placeholder="Buscar pieza..."
                 autocomplete="off">
         </label>
 
-        <div class="gallery-filters" role="group" aria-label="Filtrar galería">
+
+        <div
+            class="gallery-filters"
+            role="group"
+            aria-label="Filtrar archivo visual">
+
             <button
                 class="gallery-filter-button active"
                 type="button"
                 data-gallery-filter="all">
                 Todos
+            </button>
+
+            <button
+                class="gallery-filter-button"
+                type="button"
+                data-gallery-filter="unlocked">
+                Mi colección
             </button>
 
             <button
@@ -68,8 +376,11 @@
                 data-gallery-filter="estadios">
                 Estadios
             </button>
+
         </div>
+
     </div>
+
 
     <div
         id="gallery-status"
@@ -79,21 +390,33 @@
         Cargando colección...
     </div>
 
+
     <section
         id="gallery-grid"
         class="gallery-grid"
         aria-label="Colección de imágenes">
-        <!-- gallery.js insertará aquí las tarjetas -->
     </section>
+
 
     <div
         id="gallery-empty-state"
         class="gallery-empty-state hidden"
         role="status">
-        <span class="gallery-empty-icon" aria-hidden="true">🖼️</span>
+
+        <span
+            class="gallery-empty-icon"
+            aria-hidden="true">
+            🖼️
+        </span>
+
         <h2>No encontramos piezas</h2>
-        <p>Prueba con otro equipo o cambia el filtro seleccionado.</p>
+
+        <p>
+            Prueba con otro nombre o cambia el filtro.
+        </p>
+
     </div>
+
 
     <div
         id="gallery-modal"
@@ -102,29 +425,72 @@
         aria-modal="true"
         aria-labelledby="gallery-modal-title">
 
-        <div class="gallery-modal-backdrop" data-gallery-close></div>
+        <div
+            class="gallery-modal-backdrop"
+            data-gallery-close>
+        </div>
 
-        <article class="gallery-modal-content">
+
+        <article
+            id="gallery-modal-content"
+            class="gallery-modal-content">
+
             <button
                 id="gallery-modal-close"
                 class="gallery-modal-close"
                 type="button"
                 data-gallery-close
-                aria-label="Cerrar imagen">
+                aria-label="Cerrar pieza">
                 ×
             </button>
+
 
             <img
                 id="gallery-modal-image"
                 src=""
                 alt="">
 
+
             <div class="gallery-modal-info">
-                <span id="gallery-modal-league" class="museum-eyebrow"></span>
+
+                <span
+                    id="gallery-modal-league"
+                    class="museum-eyebrow">
+                </span>
+
                 <h2 id="gallery-modal-title"></h2>
+
                 <p id="gallery-modal-description"></p>
+
             </div>
+
+
+            <div
+                id="gallery-modal-purchase"
+                class="gallery-modal-purchase hidden">
+
+                <div
+                    id="gallery-modal-price"
+                    class="gallery-modal-price">
+                </div>
+
+                <button
+                    id="gallery-buy-button"
+                    class="gallery-buy-button"
+                    type="button">
+                    Desbloquear
+                </button>
+
+                <div
+                    id="gallery-purchase-message"
+                    class="gallery-purchase-message"
+                    aria-live="polite">
+                </div>
+
+            </div>
+
         </article>
+
     </div>
 
 </section>
