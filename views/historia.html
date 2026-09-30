@@ -1,0 +1,676 @@
+<div class="history-view">
+
+    <style>
+        .history-view {
+            width: 100%;
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 8px 4px 30px;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+
+        .history-header {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .history-header h2 {
+            margin: 0 0 5px;
+            color: var(--color-secondary, #d4af37);
+            font-size: 1.45rem;
+        }
+
+        .history-header p {
+            margin: 0;
+            opacity: .68;
+            font-size: .78rem;
+        }
+
+        .history-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .history-tab {
+            min-height: 44px;
+            border: 1px solid rgba(255,255,255,.15);
+            border-radius: 11px;
+            background: rgba(255,255,255,.07);
+            color: rgba(255,255,255,.75);
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .history-tab.active {
+            background: var(--color-secondary, #d4af37);
+            border-color: var(--color-secondary, #d4af37);
+            color: #111;
+        }
+
+        .history-panel[hidden] {
+            display: none !important;
+        }
+
+        .history-intro {
+            margin-bottom: 16px;
+            padding: 14px;
+            border-radius: 13px;
+            border: 1px solid rgba(212,175,55,.28);
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(255,255,255,.08),
+                    rgba(0,0,0,.32)
+                );
+            line-height: 1.55;
+            font-size: .82rem;
+        }
+
+        .history-timeline {
+            position: relative;
+            padding-left: 24px;
+        }
+
+        .history-timeline::before {
+            content: "";
+            position: absolute;
+            top: 6px;
+            bottom: 6px;
+            left: 7px;
+            width: 2px;
+            background: rgba(212,175,55,.38);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 14px;
+            padding: 13px 14px;
+            border-radius: 12px;
+            background: rgba(0,0,0,.33);
+            border: 1px solid rgba(255,255,255,.09);
+        }
+
+        .timeline-item::before {
+            content: "";
+            position: absolute;
+            left: -22px;
+            top: 18px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--color-secondary, #d4af37);
+            box-shadow: 0 0 0 4px rgba(212,175,55,.13);
+        }
+
+        .timeline-year {
+            color: var(--color-secondary, #d4af37);
+            font-size: .76rem;
+            font-weight: 900;
+            letter-spacing: .05em;
+        }
+
+        .timeline-item h3 {
+            margin: 4px 0 6px;
+            font-size: .95rem;
+        }
+
+        .timeline-item p {
+            margin: 0;
+            opacity: .75;
+            font-size: .78rem;
+            line-height: 1.5;
+        }
+
+        .teams-toolbar {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 150px;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .history-search,
+        .history-select {
+            width: 100%;
+            min-height: 44px;
+            padding: 9px 11px;
+            border: 1px solid rgba(255,255,255,.16);
+            border-radius: 10px;
+            background: rgba(255,255,255,.08);
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .history-select option {
+            color: #111;
+        }
+
+        .teams-count {
+            margin: 0 0 10px;
+            opacity: .55;
+            font-size: .7rem;
+        }
+
+        .teams-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 9px;
+        }
+
+        .team-history-card {
+            position: relative;
+            min-height: 128px;
+            padding: 12px;
+            border: 1px solid rgba(255,255,255,.10);
+            border-radius: 13px;
+            background: rgba(0,0,0,.34);
+            color: #fff;
+            text-align: left;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .team-history-card.favorite {
+            border-color: rgba(212,175,55,.65);
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(212,175,55,.13),
+                    rgba(0,0,0,.36)
+                );
+        }
+
+        .team-favorite-badge {
+            position: absolute;
+            top: 7px;
+            right: 7px;
+            padding: 4px 6px;
+            border-radius: 999px;
+            background: var(--color-secondary, #d4af37);
+            color: #111;
+            font-size: .58rem;
+            font-weight: 900;
+        }
+
+        .team-card-top {
+            display: grid;
+            grid-template-columns: 48px minmax(0, 1fr);
+            gap: 10px;
+            align-items: center;
+        }
+
+        .team-card-logo {
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
+        }
+
+        .team-card-name {
+            margin: 0;
+            padding-right: 3px;
+            color: var(--color-secondary, #d4af37);
+            font-size: .88rem;
+            line-height: 1.15;
+        }
+
+        .team-card-meta {
+            margin-top: 3px;
+            opacity: .58;
+            font-size: .64rem;
+            line-height: 1.3;
+        }
+
+        .team-card-details {
+            margin-top: 10px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+        }
+
+        .team-card-detail {
+            padding: 6px;
+            border-radius: 7px;
+            background: rgba(255,255,255,.055);
+        }
+
+        .team-card-detail strong {
+            display: block;
+            color: #fff;
+            font-size: .72rem;
+        }
+
+        .team-card-detail span {
+            display: block;
+            margin-top: 2px;
+            opacity: .47;
+            font-size: .56rem;
+            text-transform: uppercase;
+        }
+
+        .history-loading,
+        .history-error,
+        .history-empty {
+            grid-column: 1 / -1;
+            padding: 28px 14px;
+            border-radius: 12px;
+            background: rgba(0,0,0,.28);
+            text-align: center;
+            opacity: .72;
+        }
+
+        .history-spinner {
+            width: 30px;
+            height: 30px;
+            margin: 0 auto 10px;
+            border: 3px solid rgba(255,255,255,.16);
+            border-top-color: var(--color-secondary, #d4af37);
+            border-radius: 50%;
+            animation: historySpin .8s linear infinite;
+        }
+
+        @keyframes historySpin {
+            to { transform: rotate(360deg); }
+        }
+
+        .team-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 500000;
+            display: grid;
+            align-items: end;
+            background: rgba(0,0,0,.72);
+        }
+
+        .team-modal[hidden] {
+            display: none !important;
+        }
+
+        .team-modal-card {
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 18px 16px 24px;
+            border-radius: 20px 20px 0 0;
+            background: #0b1225;
+            border-top: 1px solid rgba(212,175,55,.5);
+        }
+
+        .team-modal-close {
+            display: block;
+            margin-left: auto;
+            min-width: 42px;
+            min-height: 42px;
+            border: 1px solid rgba(255,255,255,.15);
+            border-radius: 10px;
+            background: rgba(255,255,255,.07);
+            color: #fff;
+            font-size: 1.15rem;
+            cursor: pointer;
+        }
+
+        .team-modal-header {
+            display: grid;
+            grid-template-columns: 76px minmax(0, 1fr);
+            gap: 13px;
+            align-items: center;
+            margin: 4px 0 16px;
+        }
+
+        .team-modal-logo {
+            width: 76px;
+            height: 76px;
+            object-fit: contain;
+        }
+
+        .team-modal-title {
+            margin: 0 0 4px;
+            color: var(--color-secondary, #d4af37);
+            font-size: 1.25rem;
+        }
+
+        .team-modal-subtitle {
+            margin: 0;
+            opacity: .6;
+            font-size: .75rem;
+        }
+
+        .team-modal-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0,1fr));
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .team-modal-stat {
+            padding: 10px;
+            border-radius: 10px;
+            background: rgba(255,255,255,.06);
+        }
+
+        .team-modal-stat strong {
+            display: block;
+            font-size: .82rem;
+        }
+
+        .team-modal-stat span {
+            display: block;
+            margin-top: 3px;
+            opacity: .48;
+            font-size: .6rem;
+            text-transform: uppercase;
+        }
+
+        .team-modal-history {
+            padding: 13px;
+            border-radius: 11px;
+            background: rgba(0,0,0,.26);
+            line-height: 1.55;
+            font-size: .79rem;
+            opacity: .84;
+        }
+
+        .history-sources {
+            margin-top: 20px;
+            padding: 12px 14px;
+            border-radius: 11px;
+            background: rgba(255,255,255,.045);
+            font-size: .68rem;
+            line-height: 1.55;
+            opacity: .68;
+        }
+
+        .history-sources strong {
+            color: var(--color-secondary, #d4af37);
+        }
+
+        .history-sources a {
+            color: inherit;
+        }
+
+        @media (min-width: 700px) {
+            .teams-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .team-modal {
+                align-items: center;
+                justify-items: center;
+                padding: 20px;
+            }
+
+            .team-modal-card {
+                max-width: 620px;
+                border-radius: 18px;
+                border: 1px solid rgba(212,175,55,.5);
+            }
+        }
+
+        @media (max-width: 430px) {
+            .teams-toolbar {
+                grid-template-columns: 1fr;
+            }
+
+            .teams-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+
+    <header class="history-header">
+        <h2>⚾ Historia del Béisbol</h2>
+        <p>
+            Del nacimiento del juego profesional a las franquicias actuales de MLB
+        </p>
+    </header>
+
+
+    <div class="history-tabs">
+        <button
+            type="button"
+            class="history-tab active"
+            data-history-panel="timeline">
+            Línea del tiempo
+        </button>
+
+        <button
+            type="button"
+            class="history-tab"
+            data-history-panel="teams">
+            Equipos MLB
+        </button>
+    </div>
+
+
+    <section
+        id="history-panel-timeline"
+        class="history-panel">
+
+        <div class="history-intro">
+            El béisbol profesional moderno se desarrolló durante la segunda mitad
+            del siglo XIX. Con el tiempo surgieron las dos ligas históricas de MLB,
+            la Liga Nacional y la Liga Americana, cuya rivalidad dio origen a la
+            Serie Mundial.
+        </div>
+
+        <div class="history-timeline">
+
+            <article class="timeline-item">
+                <span class="timeline-year">1869</span>
+                <h3>El primer club abiertamente profesional</h3>
+                <p>
+                    Los Cincinnati Red Stockings se convirtieron en el primer equipo
+                    conocido que se presentó abiertamente como un club profesional
+                    con jugadores asalariados.
+                </p>
+            </article>
+
+            <article class="timeline-item">
+                <span class="timeline-year">1876</span>
+                <h3>Nace la Liga Nacional</h3>
+                <p>
+                    La National League fue establecida en 1876 y permanece como
+                    una de las dos ligas que forman Major League Baseball.
+                </p>
+            </article>
+
+            <article class="timeline-item">
+                <span class="timeline-year">1901</span>
+                <h3>Nace la Liga Americana</h3>
+                <p>
+                    La American League fue organizada como liga mayor en 1901.
+                    Su aparición estableció la estructura de dos ligas que marcó
+                    gran parte de la era moderna de MLB.
+                </p>
+            </article>
+
+            <article class="timeline-item">
+                <span class="timeline-year">1903</span>
+                <h3>Primera Serie Mundial moderna</h3>
+                <p>
+                    Los campeones de la Liga Americana y la Liga Nacional se
+                    enfrentaron en la primera Serie Mundial moderna: Boston
+                    Americans contra Pittsburgh Pirates.
+                </p>
+            </article>
+
+            <article class="timeline-item">
+                <span class="timeline-year">1920</span>
+                <h3>Negro National League</h3>
+                <p>
+                    Rube Foster organizó la Negro National League, una pieza
+                    fundamental en la historia del béisbol profesional y de
+                    generaciones de peloteros afroamericanos.
+                </p>
+            </article>
+
+            <article class="timeline-item">
+                <span class="timeline-year">1947</span>
+                <h3>Jackie Robinson y Larry Doby</h3>
+                <p>
+                    Jackie Robinson debutó con Brooklyn y rompió la barrera racial
+                    moderna de la Liga Nacional. Meses después, Larry Doby hizo lo
+                    propio en la Liga Americana con Cleveland.
+                </p>
+            </article>
+
+            <article class="timeline-item">
+                <span class="timeline-year">1969</span>
+                <h3>Comienza la era divisional</h3>
+                <p>
+                    La expansión llevó a cada liga a dividirse en Este y Oeste.
+                    También nacieron las Series de Campeonato de Liga como ronda
+                    previa a la Serie Mundial.
+                </p>
+            </article>
+
+            <article class="timeline-item">
+                <span class="timeline-year">1997</span>
+                <h3>Juego interligas en temporada regular</h3>
+                <p>
+                    Por primera vez, equipos de la Liga Americana y la Liga
+                    Nacional comenzaron a enfrentarse durante la temporada
+                    regular y no únicamente en la Serie Mundial.
+                </p>
+            </article>
+
+        </div>
+
+    </section>
+
+
+    <section
+        id="history-panel-teams"
+        class="history-panel"
+        hidden>
+
+        <div class="teams-toolbar">
+
+            <input
+                id="history-team-search"
+                class="history-search"
+                type="search"
+                placeholder="Buscar equipo..."
+                autocomplete="off"
+                aria-label="Buscar equipo"
+            >
+
+            <select
+                id="history-league-filter"
+                class="history-select"
+                aria-label="Filtrar por liga">
+                <option value="all">Todas las ligas</option>
+                <option value="American">Liga Americana</option>
+                <option value="National">Liga Nacional</option>
+            </select>
+
+        </div>
+
+        <p
+            id="history-teams-count"
+            class="teams-count">
+            Cargando equipos...
+        </p>
+
+        <div
+            id="history-teams-grid"
+            class="teams-grid">
+
+            <div class="history-loading">
+                <div class="history-spinner"></div>
+                Cargando información de las franquicias...
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <div
+        id="history-team-modal"
+        class="team-modal"
+        hidden
+        aria-hidden="true">
+
+        <div
+            class="team-modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="history-modal-title">
+
+            <button
+                id="history-modal-close"
+                class="team-modal-close"
+                type="button"
+                aria-label="Cerrar">
+                ✕
+            </button>
+
+            <div class="team-modal-header">
+                <img
+                    id="history-modal-logo"
+                    class="team-modal-logo"
+                    src=""
+                    alt=""
+                >
+
+                <div>
+                    <h3
+                        id="history-modal-title"
+                        class="team-modal-title">
+                    </h3>
+
+                    <p
+                        id="history-modal-subtitle"
+                        class="team-modal-subtitle">
+                    </p>
+                </div>
+            </div>
+
+            <div class="team-modal-grid">
+
+                <div class="team-modal-stat">
+                    <strong id="history-modal-founded">—</strong>
+                    <span>En MLB desde</span>
+                </div>
+
+                <div class="team-modal-stat">
+                    <strong id="history-modal-venue">—</strong>
+                    <span>Estadio actual</span>
+                </div>
+
+                <div class="team-modal-stat">
+                    <strong id="history-modal-location">—</strong>
+                    <span>Ciudad / sede</span>
+                </div>
+
+                <div class="team-modal-stat">
+                    <strong id="history-modal-division">—</strong>
+                    <span>División</span>
+                </div>
+
+            </div>
+
+            <div
+                id="history-modal-history"
+                class="team-modal-history">
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="history-sources">
+        <strong>Fuentes:</strong>
+        MLB Stats API para datos de franquicias actuales; MLB.com y
+        National Baseball Hall of Fame para la línea histórica.
+        Esta sección resume los hitos con fines académicos.
+    </div>
+
+
+    <script src="js/history.js?v=1"></script>
+
+</div>
