@@ -1,19 +1,519 @@
-<div class="estadisticas-container" style="padding: 20px; color: #fff; text-align: center;">
-    <h2>📊 Estadísticas y Logros</h2>
-    <p style="margin-bottom: 25px; opacity: 0.8;">Progreso</p>
-    
-    <div style="background: rgba(0, 0, 0, 0.6); padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); text-align: left;">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
-            <span>⚾ Puntos de Trivia:</span>
-            <strong id="stat-puntos" style="color: #ffcc00;">0 pts</strong>
-        </div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
-            <span>🏆 Trofeos AR:</span>
-            <strong id="stat-trofeos" style="color: #ffcc00;">0 / 10</strong>
-        </div>
-        <div style="display: flex; justify-content: space-between;">
-            <span>🎖️ Nivel de Usuario:</span>
-            <strong id="stat-nivel" style="color: #ffcc00;">Novato (Nivel 1)</strong>
-        </div>
+<div class="mlb-stats-view">
+
+    <style>
+        .mlb-stats-view {
+            width: 100%;
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 8px 4px 28px;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+
+        .mlb-stats-header {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .mlb-stats-header h2 {
+            margin: 0 0 5px;
+            color: var(--color-secondary, #d4af37);
+            font-size: 1.45rem;
+        }
+
+        .mlb-stats-subtitle {
+            margin: 0;
+            opacity: .68;
+            font-size: .78rem;
+        }
+
+        .mlb-stats-toolbar {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 9px;
+            margin-bottom: 14px;
+        }
+
+        .mlb-stats-select {
+            width: 100%;
+            min-height: 44px;
+            padding: 9px 10px;
+            color: #fff;
+            background: rgba(255, 255, 255, .08);
+            border: 1px solid rgba(255, 255, 255, .18);
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        .mlb-stats-select option {
+            color: #111;
+        }
+
+        .mlb-stats-tabs {
+            display: flex;
+            gap: 7px;
+            overflow-x: auto;
+            padding-bottom: 3px;
+            margin-bottom: 14px;
+            scrollbar-width: none;
+        }
+
+        .mlb-stats-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .mlb-stats-tab {
+            flex: 0 0 auto;
+            min-height: 40px;
+            padding: 8px 14px;
+            border: 1px solid rgba(255,255,255,.16);
+            border-radius: 999px;
+            background: rgba(255,255,255,.07);
+            color: rgba(255,255,255,.72);
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .mlb-stats-tab.active {
+            background: var(--color-secondary, #d4af37);
+            color: #111;
+            border-color: var(--color-secondary, #d4af37);
+        }
+
+        .mlb-stats-section {
+            margin-bottom: 18px;
+        }
+
+        .mlb-stats-section-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin: 0 0 9px;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .mlb-stats-section-title span {
+            color: var(--color-secondary, #d4af37);
+        }
+
+        .favorite-team-card {
+            display: grid;
+            grid-template-columns: 58px minmax(0, 1fr);
+            gap: 12px;
+            align-items: center;
+            padding: 14px;
+            border-radius: 14px;
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(255,255,255,.09),
+                    rgba(0,0,0,.35)
+                );
+            border: 1px solid rgba(212,175,55,.34);
+            margin-bottom: 18px;
+        }
+
+        .favorite-team-card.hidden {
+            display: none;
+        }
+
+        .favorite-team-logo {
+            width: 58px;
+            height: 58px;
+            object-fit: contain;
+        }
+
+        .favorite-team-name {
+            margin: 0 0 7px;
+            color: var(--color-secondary, #d4af37);
+            font-size: 1.05rem;
+        }
+
+        .favorite-team-meta {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 6px;
+        }
+
+        .favorite-team-stat {
+            padding: 7px 5px;
+            text-align: center;
+            border-radius: 8px;
+            background: rgba(0,0,0,.26);
+        }
+
+        .favorite-team-stat strong {
+            display: block;
+            font-size: .92rem;
+        }
+
+        .favorite-team-stat span {
+            display: block;
+            margin-top: 2px;
+            opacity: .58;
+            font-size: .62rem;
+            text-transform: uppercase;
+        }
+
+        .division-card {
+            margin-bottom: 11px;
+            overflow: hidden;
+            border-radius: 13px;
+            border: 1px solid rgba(255,255,255,.10);
+            background: rgba(0,0,0,.34);
+        }
+
+        .division-title {
+            padding: 9px 12px;
+            background: rgba(255,255,255,.07);
+            color: var(--color-secondary, #d4af37);
+            font-size: .83rem;
+            font-weight: 800;
+        }
+
+        .standings-table-wrap {
+            overflow-x: auto;
+        }
+
+        .standings-table {
+            width: 100%;
+            min-width: 500px;
+            border-collapse: collapse;
+            font-size: .75rem;
+        }
+
+        .standings-table th,
+        .standings-table td {
+            padding: 8px 7px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,.07);
+        }
+
+        .standings-table th {
+            color: rgba(255,255,255,.52);
+            font-size: .64rem;
+            text-transform: uppercase;
+        }
+
+        .standings-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .standings-team {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            min-width: 175px;
+            text-align: left !important;
+        }
+
+        .standings-team img {
+            width: 27px;
+            height: 27px;
+            object-fit: contain;
+            flex: 0 0 auto;
+        }
+
+        .standings-team-name {
+            line-height: 1.15;
+        }
+
+        .standings-rank {
+            width: 24px;
+            color: rgba(255,255,255,.58);
+        }
+
+        .favorite-row {
+            background: rgba(212,175,55,.10);
+        }
+
+        .favorite-row .standings-team-name {
+            color: var(--color-secondary, #d4af37);
+            font-weight: 800;
+        }
+
+        .leader-category {
+            margin-bottom: 12px;
+            overflow: hidden;
+            border-radius: 13px;
+            border: 1px solid rgba(255,255,255,.10);
+            background: rgba(0,0,0,.34);
+        }
+
+        .leader-category-title {
+            padding: 9px 12px;
+            font-size: .83rem;
+            font-weight: 800;
+            color: var(--color-secondary, #d4af37);
+            background: rgba(255,255,255,.07);
+        }
+
+        .leader-row {
+            display: grid;
+            grid-template-columns: 28px 40px minmax(0, 1fr) auto;
+            gap: 8px;
+            align-items: center;
+            min-height: 52px;
+            padding: 7px 11px;
+            border-bottom: 1px solid rgba(255,255,255,.07);
+        }
+
+        .leader-row:last-child {
+            border-bottom: none;
+        }
+
+        .leader-rank {
+            font-weight: 800;
+            opacity: .56;
+            text-align: center;
+        }
+
+        .leader-headshot {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            object-position: top;
+            border-radius: 50%;
+            background: rgba(255,255,255,.08);
+        }
+
+        .leader-name {
+            min-width: 0;
+            font-size: .8rem;
+            font-weight: 700;
+        }
+
+        .leader-team {
+            display: block;
+            margin-top: 2px;
+            opacity: .53;
+            font-size: .65rem;
+        }
+
+        .leader-value {
+            color: var(--color-secondary, #d4af37);
+            font-size: 1rem;
+            font-weight: 900;
+            text-align: right;
+        }
+
+        .mlb-stats-loading,
+        .mlb-stats-error,
+        .mlb-stats-empty {
+            padding: 28px 14px;
+            text-align: center;
+            border-radius: 12px;
+            background: rgba(0,0,0,.26);
+            opacity: .76;
+        }
+
+        .mlb-stats-spinner {
+            width: 32px;
+            height: 32px;
+            margin: 0 auto 10px;
+            border: 3px solid rgba(255,255,255,.17);
+            border-top-color: var(--color-secondary, #d4af37);
+            border-radius: 50%;
+            animation: mlbStatsSpin .8s linear infinite;
+        }
+
+        @keyframes mlbStatsSpin {
+            to { transform: rotate(360deg); }
+        }
+
+        .mlb-stats-retry {
+            margin-top: 10px;
+            min-height: 40px;
+            padding: 8px 17px;
+            border: none;
+            border-radius: 9px;
+            background: var(--color-secondary, #d4af37);
+            color: #111;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .mlb-stats-source {
+            margin-top: 14px;
+            text-align: center;
+            opacity: .45;
+            font-size: .66rem;
+        }
+
+        @media (max-width: 520px) {
+            .mlb-stats-toolbar {
+                grid-template-columns: 1fr;
+            }
+
+            .favorite-team-meta {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+    </style>
+
+
+    <header class="mlb-stats-header">
+        <h2>📊 Estadísticas MLB</h2>
+        <p class="mlb-stats-subtitle">
+            Posiciones y líderes de temporada
+        </p>
+    </header>
+
+
+    <div class="mlb-stats-toolbar">
+
+        <select
+            id="stats-season"
+            class="mlb-stats-select"
+            aria-label="Seleccionar temporada">
+        </select>
+
+        <select
+            id="stats-league"
+            class="mlb-stats-select"
+            aria-label="Seleccionar liga">
+            <option value="all">MLB — Ambas ligas</option>
+            <option value="103">Liga Americana</option>
+            <option value="104">Liga Nacional</option>
+        </select>
+
     </div>
+
+
+    <div class="mlb-stats-tabs" role="tablist">
+        <button
+            type="button"
+            class="mlb-stats-tab active"
+            data-stats-panel="standings">
+            Posiciones
+        </button>
+
+        <button
+            type="button"
+            class="mlb-stats-tab"
+            data-stats-panel="hitting">
+            Líderes de bateo
+        </button>
+
+        <button
+            type="button"
+            class="mlb-stats-tab"
+            data-stats-panel="pitching">
+            Líderes de pitcheo
+        </button>
+    </div>
+
+
+    <section
+        id="favorite-team-card"
+        class="favorite-team-card hidden">
+
+        <img
+            id="favorite-team-logo"
+            class="favorite-team-logo"
+            src=""
+            alt=""
+        >
+
+        <div>
+            <h3
+                id="favorite-team-name"
+                class="favorite-team-name">
+            </h3>
+
+            <div class="favorite-team-meta">
+                <div class="favorite-team-stat">
+                    <strong id="favorite-team-record">—</strong>
+                    <span>Récord</span>
+                </div>
+
+                <div class="favorite-team-stat">
+                    <strong id="favorite-team-rank">—</strong>
+                    <span>División</span>
+                </div>
+
+                <div class="favorite-team-stat">
+                    <strong id="favorite-team-streak">—</strong>
+                    <span>Racha</span>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+
+    <section
+        id="stats-panel-standings"
+        class="mlb-stats-panel">
+
+        <div class="mlb-stats-section">
+            <h3 class="mlb-stats-section-title">
+                Posiciones por división
+                <span id="standings-season-label"></span>
+            </h3>
+
+            <div id="standings-content">
+                <div class="mlb-stats-loading">
+                    <div class="mlb-stats-spinner"></div>
+                    Cargando posiciones...
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+
+    <section
+        id="stats-panel-hitting"
+        class="mlb-stats-panel"
+        hidden>
+
+        <div class="mlb-stats-section">
+            <h3 class="mlb-stats-section-title">
+                Líderes ofensivos
+                <span id="hitting-season-label"></span>
+            </h3>
+
+            <div id="hitting-content">
+                <div class="mlb-stats-loading">
+                    <div class="mlb-stats-spinner"></div>
+                    Cargando líderes...
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+
+    <section
+        id="stats-panel-pitching"
+        class="mlb-stats-panel"
+        hidden>
+
+        <div class="mlb-stats-section">
+            <h3 class="mlb-stats-section-title">
+                Líderes de pitcheo
+                <span id="pitching-season-label"></span>
+            </h3>
+
+            <div id="pitching-content">
+                <div class="mlb-stats-loading">
+                    <div class="mlb-stats-spinner"></div>
+                    Cargando líderes...
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+
+    <p class="mlb-stats-source">
+        Datos: MLB Stats API
+    </p>
+
+
+    <script src="js/stats.js?v=1"></script>
+
 </div>
