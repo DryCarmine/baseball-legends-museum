@@ -1,15 +1,313 @@
-<div style="padding: 20px; color: #fff; text-align: center; max-width: 600px; margin: 0 auto;">
-    <h2 style="margin-bottom: 10px; color: #ffcc00;">TRIVIA MLB</h2>
-    <p id="trivia-instruccion" style="margin-bottom: 20px; opacity: 0.8; font-size: 14px;">Pon a prueba tus conocimientos sobre el béisbol.</p>
-    
-    <div id="trivia-card" style="background: rgba(20, 20, 30, 0.85); border: 1px solid rgba(255, 255, 255, 0.15); padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
-        <h3 id="pregunta-texto" style="font-size: 16px; margin-bottom: 20px; color: #fff;">Cargando pregunta...</h3>
-        <div id="opciones-container" style="display: flex; flex-direction: column; gap: 10px;">
-            <!-- Opciones dinámicas -->
+<div class="trivia-view">
+
+    <style>
+        .trivia-view {
+            width: 100%;
+            max-width: 650px;
+            margin: 0 auto;
+            padding: 8px 4px 30px;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+
+        .trivia-header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .trivia-header h2 {
+            margin: 0 0 5px;
+            color: var(--color-secondary, #d4af37);
+            font-size: 1.45rem;
+        }
+
+        .trivia-header p {
+            margin: 0;
+            opacity: .65;
+            font-size: .77rem;
+        }
+
+        .trivia-summary {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 7px;
+            margin-bottom: 12px;
+        }
+
+        .trivia-stat {
+            padding: 9px 6px;
+            border: 1px solid rgba(255,255,255,.09);
+            border-radius: 10px;
+            background: rgba(0,0,0,.28);
+            text-align: center;
+        }
+
+        .trivia-stat strong {
+            display: block;
+            color: var(--color-secondary, #d4af37);
+            font-size: .92rem;
+        }
+
+        .trivia-stat span {
+            display: block;
+            margin-top: 2px;
+            opacity: .5;
+            font-size: .58rem;
+            text-transform: uppercase;
+        }
+
+        .trivia-progress {
+            height: 7px;
+            margin-bottom: 13px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(255,255,255,.09);
+        }
+
+        .trivia-progress-bar {
+            width: 0%;
+            height: 100%;
+            border-radius: inherit;
+            background: var(--color-secondary, #d4af37);
+            transition: width .25s ease;
+        }
+
+        .trivia-card {
+            padding: 18px 15px;
+            border: 1px solid rgba(212,175,55,.28);
+            border-radius: 14px;
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(255,255,255,.075),
+                    rgba(0,0,0,.38)
+                );
+            box-shadow: 0 8px 22px rgba(0,0,0,.28);
+        }
+
+        .trivia-question-number {
+            margin-bottom: 7px;
+            color: var(--color-secondary, #d4af37);
+            font-size: .68rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+        }
+
+        .trivia-question {
+            margin: 0 0 17px;
+            font-size: 1rem;
+            line-height: 1.45;
+        }
+
+        .trivia-options {
+            display: grid;
+            gap: 9px;
+        }
+
+        .trivia-option {
+            width: 100%;
+            min-height: 48px;
+            padding: 11px 13px;
+            border: 1px solid rgba(255,255,255,.14);
+            border-radius: 10px;
+            background: rgba(255,255,255,.07);
+            color: #fff;
+            font-size: .82rem;
+            line-height: 1.35;
+            text-align: left;
+            cursor: pointer;
+            transition:
+                transform .12s ease,
+                background .18s ease,
+                border-color .18s ease;
+        }
+
+        .trivia-option:active:not(:disabled) {
+            transform: scale(.985);
+        }
+
+        .trivia-option:disabled {
+            cursor: default;
+        }
+
+        .trivia-option.correct {
+            background: rgba(42,157,143,.28);
+            border-color: #2a9d8f;
+        }
+
+        .trivia-option.incorrect {
+            background: rgba(230,57,70,.27);
+            border-color: #e63946;
+        }
+
+        .trivia-result {
+            min-height: 25px;
+            margin: 13px 0 4px;
+            font-size: .84rem;
+            font-weight: 800;
+            text-align: center;
+        }
+
+        .trivia-result.correct {
+            color: #56d5c5;
+        }
+
+        .trivia-result.incorrect {
+            color: #ff6b78;
+        }
+
+        .trivia-next {
+            display: none;
+            width: 100%;
+            min-height: 46px;
+            margin-top: 10px;
+            padding: 10px 14px;
+            border: none;
+            border-radius: 10px;
+            background: var(--color-secondary, #d4af37);
+            color: #111;
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        .trivia-loading,
+        .trivia-error {
+            padding: 28px 12px;
+            text-align: center;
+            opacity: .72;
+        }
+
+        .trivia-spinner {
+            width: 31px;
+            height: 31px;
+            margin: 0 auto 10px;
+            border: 3px solid rgba(255,255,255,.15);
+            border-top-color: var(--color-secondary, #d4af37);
+            border-radius: 50%;
+            animation: triviaSpin .8s linear infinite;
+        }
+
+        @keyframes triviaSpin {
+            to { transform: rotate(360deg); }
+        }
+
+        .trivia-final {
+            text-align: center;
+            padding: 8px 0 3px;
+        }
+
+        .trivia-final-icon {
+            margin-bottom: 7px;
+            font-size: 2.2rem;
+        }
+
+        .trivia-final h3 {
+            margin: 0 0 7px;
+            color: var(--color-secondary, #d4af37);
+        }
+
+        .trivia-final-score {
+            margin: 15px 0;
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: var(--color-secondary, #d4af37);
+        }
+
+        .trivia-final p {
+            margin: 5px 0;
+            opacity: .72;
+            font-size: .8rem;
+        }
+
+        .trivia-bank-note {
+            margin-top: 12px;
+            text-align: center;
+            opacity: .43;
+            font-size: .64rem;
+        }
+
+        @media (max-width: 390px) {
+            .trivia-view {
+                padding-left: 2px;
+                padding-right: 2px;
+            }
+
+            .trivia-card {
+                padding: 15px 12px;
+            }
+
+            .trivia-option {
+                font-size: .78rem;
+            }
+        }
+    </style>
+
+
+    <header class="trivia-header">
+        <h2>⚾ Trivia MLB</h2>
+        <p>
+            75 preguntas disponibles · 5 preguntas aleatorias por partida
+        </p>
+    </header>
+
+
+    <div class="trivia-summary">
+
+        <div class="trivia-stat">
+            <strong id="trivia-progress-text">1 / 5</strong>
+            <span>Pregunta</span>
+        </div>
+
+        <div class="trivia-stat">
+            <strong id="stat-puntos">0 pts</strong>
+            <span>Puntaje</span>
+        </div>
+
+        <div class="trivia-stat">
+            <strong id="trivia-best-score">0 pts</strong>
+            <span>Mejor marca</span>
+        </div>
+
+    </div>
+
+
+    <div class="trivia-progress">
+        <div
+            id="trivia-progress-bar"
+            class="trivia-progress-bar">
         </div>
     </div>
 
-    <div id="trivia-resultado" style="font-size: 16px; font-weight: bold; margin: 15px 0; min-height: 24px;"></div>
-    
-    <button id="btn-siguiente" style="display: none; margin: 10px auto 0; padding: 10px 20px; background: #e63946; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">Siguiente Pregunta</button>
+
+    <section
+        id="trivia-card"
+        class="trivia-card">
+
+        <div class="trivia-loading">
+            <div class="trivia-spinner"></div>
+            Cargando preguntas...
+        </div>
+
+    </section>
+
+
+    <div
+        id="trivia-resultado"
+        class="trivia-result">
+    </div>
+
+
+    <button
+        id="btn-siguiente"
+        class="trivia-next"
+        type="button">
+        Siguiente pregunta
+    </button>
+
+
+    <p class="trivia-bank-note">
+        Las preguntas y las opciones se mezclan en cada partida.
+    </p>
+
 </div>
