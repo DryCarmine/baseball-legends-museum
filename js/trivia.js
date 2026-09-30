@@ -1,12 +1,15 @@
 const PREGUNTAS_POR_PARTIDA = 5;
 const PUNTOS_POR_RESPUESTA = 10;
 const TRIVIA_BEST_KEY = "mlbTriviaBestScore";
+const MUSEUM_POINTS_KEY = "museumPoints";
 
 let preguntasPartida = [];
 let preguntaActualIndex = 0;
 let puntajeActual = 0;
 let respuestasCorrectas = 0;
 let triviaBloqueada = false;
+let recompensaMuseoEntregada = false;
+let puntosMuseoGanados = 0;
 
 
 /**
@@ -187,6 +190,75 @@ function prepararPregunta(item) {
 }
 
 
+function obtenerPuntosMuseo() {
+
+    const valor =
+        Number(
+            localStorage.getItem(
+                MUSEUM_POINTS_KEY
+            )
+        );
+
+    return (
+        Number.isFinite(valor) &&
+        valor >= 0
+    )
+        ? Math.floor(valor)
+        : 0;
+}
+
+
+function actualizarSaldoMuseo() {
+
+    const elemento =
+        document.getElementById(
+            "trivia-museum-points"
+        );
+
+    if (elemento) {
+
+        elemento.textContent =
+            obtenerPuntosMuseo();
+    }
+}
+
+
+function sumarPuntosMuseo(cantidad) {
+
+    const cantidadSegura =
+        Math.max(
+            0,
+            Math.floor(
+                Number(cantidad) || 0
+            )
+        );
+
+    const nuevoSaldo =
+        obtenerPuntosMuseo() +
+        cantidadSegura;
+
+    localStorage.setItem(
+        MUSEUM_POINTS_KEY,
+        String(nuevoSaldo)
+    );
+
+    actualizarSaldoMuseo();
+
+    window.dispatchEvent(
+        new CustomEvent(
+            "museumPointsChanged",
+            {
+                detail: {
+                    points: nuevoSaldo
+                }
+            }
+        )
+    );
+
+    return nuevoSaldo;
+}
+
+
 function obtenerMejorPuntaje() {
 
     const valor =
@@ -277,6 +349,8 @@ function actualizarResumen() {
             `${current} / ${PREGUNTAS_POR_PARTIDA}`;
     }
 
+    actualizarSaldoMuseo();
+
     if (progressBar) {
 
         const completed =
@@ -353,6 +427,14 @@ async function cargarTrivia() {
 
     triviaBloqueada =
         false;
+
+    recompensaMuseoEntregada =
+        false;
+
+    puntosMuseoGanados =
+        0;
+
+    actualizarSaldoMuseo();
 
     actualizarResumen();
 
@@ -727,6 +809,29 @@ function mostrarResultadosFinales() {
 
     guardarMejorPuntaje();
 
+    if (!recompensaMuseoEntregada) {
+
+        /*
+         * En Trivia:
+         * 10 puntos por respuesta correcta =
+         * 10 Puntos del Museo.
+         *
+         * Máximo por partida: 50.
+         */
+        puntosMuseoGanados =
+            puntajeActual;
+
+        sumarPuntosMuseo(
+            puntosMuseoGanados
+        );
+
+        recompensaMuseoEntregada =
+            true;
+    }
+
+    const saldoMuseo =
+        obtenerPuntosMuseo();
+
     const triviaCard =
         document.getElementById(
             "trivia-card"
@@ -782,6 +887,14 @@ function mostrarResultadosFinales() {
                         ${respuestasCorrectas} / ${PREGUNTAS_POR_PARTIDA}
                     </strong>
                 </p>
+
+                <div class="trivia-earned">
+                    Ganaste
+                    <strong>${puntosMuseoGanados}</strong>
+                    puntos del museo.<br>
+                    Saldo total:
+                    <strong>${saldoMuseo}</strong>
+                </div>
 
                 <p>
                     Mejor marca:
@@ -840,5 +953,7 @@ window.cargarTrivia =
 
 window.TriviaModule = {
     init: cargarTrivia,
-    restart: cargarTrivia
+    restart: cargarTrivia,
+    getMuseumPoints: obtenerPuntosMuseo,
+    addMuseumPoints: sumarPuntosMuseo
 };

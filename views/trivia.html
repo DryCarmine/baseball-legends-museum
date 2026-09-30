@@ -27,6 +27,42 @@
             font-size: .77rem;
         }
 
+
+        .trivia-wallet {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            min-height: 36px;
+            margin-bottom: 11px;
+            padding: 7px 12px;
+            border: 1px solid rgba(212,175,55,.24);
+            border-radius: 10px;
+            background: rgba(212,175,55,.07);
+            color: var(--color-secondary, #d4af37);
+            font-size: .7rem;
+            font-weight: 900;
+            letter-spacing: .03em;
+        }
+
+        .trivia-wallet strong {
+            color: #fff;
+            font-size: .82rem;
+        }
+
+        .trivia-earned {
+            margin: 13px 0 5px;
+            padding: 10px 12px;
+            border: 1px solid rgba(212,175,55,.28);
+            border-radius: 10px;
+            background: rgba(212,175,55,.07);
+            line-height: 1.5;
+        }
+
+        .trivia-earned strong {
+            color: var(--color-secondary, #d4af37);
+        }
+
         .trivia-summary {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -250,6 +286,12 @@
             75 preguntas disponibles · 5 preguntas aleatorias por partida
         </p>
     </header>
+
+
+    <div class="trivia-wallet">
+        🏛️ Puntos del museo:
+        <strong id="trivia-museum-points">0</strong>
+    </div>
 
 
     <div class="trivia-summary">
