@@ -50,98 +50,366 @@ body {
 
 
 /* ====
-   3. BARRA SUPERIOR
+   3. ENCABEZADO / RANGO DEL MUSEO
    ==== */
 
-.top-status-bar {
-    background: linear-gradient(to bottom, var(--color-nav-bg-top), var(--color-nav-bg-bottom));
+.museum-header {
+    flex-shrink: 0;
+    min-height: 72px;
+
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 0 15px;
-    border-bottom: 3px solid var(--color-secondary);
-    height: 60px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
-    z-index: 10;
-    transition: background 0.5s ease, border-color 0.5s ease;
+    justify-content: space-between;
+    gap: 10px;
+
+    padding: 8px 12px;
+
+    background:
+        linear-gradient(
+            to bottom,
+            var(--color-nav-bg-top),
+            var(--color-nav-bg-bottom)
+        );
+
+    border-bottom:
+        3px solid
+        var(--color-secondary);
+
+    box-shadow:
+        0 4px 9px
+        rgba(0, 0, 0, 0.42);
+
+    z-index: 20;
+
+    transition:
+        background 0.5s ease,
+        border-color 0.5s ease;
 }
 
-#btn-back {
-    background: none;
-    border: none;
-    color: var(--color-secondary);
-    font-size: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: color 0.5s ease;
+
+/* Tarjeta izquierda: rango */
+
+.museum-rank-card {
+    min-width: 0;
+    flex: 1;
+
+    display: flex;
+    align-items: center;
+    gap: 9px;
 }
 
-.hidden {
-    display: none !important;
+
+.museum-rank-icon {
+    flex: 0 0 42px;
+
+    width: 42px;
+    height: 42px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 50%;
+
+    background:
+        rgba(0, 0, 0, 0.24);
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.14);
+
+    box-shadow:
+        inset 0 0 0 2px
+        rgba(212, 175, 55, 0.06);
+
+    font-size: 1.15rem;
 }
 
-.user-level {
+
+.museum-rank-info {
+    min-width: 0;
+    flex: 1;
+}
+
+
+.museum-rank-kicker {
+    display: block;
+    margin-bottom: 2px;
+
+    color:
+        rgba(255, 255, 255, 0.58);
+
+    font-family:
+        Arial,
+        sans-serif;
+
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+}
+
+
+.museum-rank-main {
+    min-width: 0;
+
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+}
+
+
+#museum-rank-name {
+    min-width: 0;
+    overflow: hidden;
+
+    color: #f5f5dc;
+
+    font-size: 0.93rem;
+    line-height: 1.1;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+#museum-rank-progress-label {
+    flex-shrink: 0;
+
+    color:
+        var(
+            --color-secondary,
+            #d4af37
+        );
+
+    font-family:
+        Arial,
+        sans-serif;
+
+    font-size: 0.58rem;
+    font-weight: 800;
+}
+
+
+.museum-rank-progress {
+    width: 100%;
+    max-width: 220px;
+
+    height: 5px;
+    margin-top: 5px;
+
+    overflow: hidden;
+
+    border-radius: 999px;
+
+    background:
+        rgba(255, 255, 255, 0.11);
+}
+
+
+.museum-rank-progress-fill {
+    width: 0%;
+    height: 100%;
+
+    border-radius: inherit;
+
+    background:
+        var(
+            --color-secondary,
+            #d4af37
+        );
+
+    transition:
+        width 0.35s ease,
+        background-color 0.5s ease;
+}
+
+
+/* Zona derecha */
+
+.museum-header-actions {
+    flex-shrink: 0;
+
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-.level-badge {
-    background-color: var(--color-secondary);
-    color: var(--color-nav-bg-top);
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-weight: bold;
-    font-family: sans-serif;
-    transition: background-color 0.5s ease;
-}
 
-.username {
-    font-weight: bold;
-    letter-spacing: 1px;
-}
+.museum-collection-chip {
+    min-width: 69px;
+    padding: 6px 8px;
 
-.stats {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-family: sans-serif;
-}
+    border-radius: 10px;
 
-.stat-box {
-    background-color: rgba(255, 255, 255, 0.1);
-    padding: 5px 12px;
-    border-radius: 15px;
-    border: 1px solid var(--color-secondary);
-    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
-    transition: border-color 0.5s ease;
+    background:
+        rgba(0, 0, 0, 0.23);
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.13);
+
+    text-align: center;
+
+    font-family:
+        Arial,
+        sans-serif;
 }
 
 
-/* Botón de configuración */
+.museum-collection-chip span {
+    display: block;
+    margin-bottom: 1px;
+
+    color:
+        rgba(255, 255, 255, 0.50);
+
+    font-size: 0.48rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+}
+
+
+.museum-collection-chip strong {
+    display: block;
+
+    color:
+        var(
+            --color-secondary,
+            #d4af37
+        );
+
+    font-size: 0.76rem;
+}
+
+
+/* Configuración */
 
 .config-button {
+    flex: 0 0 38px;
+
     width: 38px;
     height: 38px;
+
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid var(--color-secondary);
+
+    padding: 0;
+
+    background:
+        rgba(255, 255, 255, 0.08);
+
+    border:
+        1px solid
+        var(
+            --color-secondary,
+            #d4af37
+        );
+
     border-radius: 50%;
+
     color: #f5f5dc;
-    font-size: 1.15rem;
+
+    font-size: 1.05rem;
+
     cursor: pointer;
-    transition: transform 0.2s ease, background 0.2s ease, border-color 0.5s ease;
+
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease,
+        border-color 0.5s ease;
 }
+
 
 .config-button:hover {
-    background: rgba(212, 175, 55, 0.18);
-    transform: rotate(15deg);
+    background:
+        rgba(212, 175, 55, 0.16);
+
+    transform:
+        rotate(15deg);
 }
 
+
 .config-button:active {
-    transform: scale(0.92);
+    transform:
+        scale(0.92);
+}
+
+
+.hidden {
+    display: none !important;
+}
+
+
+/* Móvil pequeño */
+
+@media (max-width: 390px) {
+
+    .museum-header {
+        min-height: 68px;
+        gap: 7px;
+
+        padding:
+            7px 8px;
+    }
+
+
+    .museum-rank-card {
+        gap: 7px;
+    }
+
+
+    .museum-rank-icon {
+        flex-basis: 36px;
+
+        width: 36px;
+        height: 36px;
+
+        font-size: 1rem;
+    }
+
+
+    .museum-rank-kicker {
+        font-size: 0.48rem;
+    }
+
+
+    #museum-rank-name {
+        font-size: 0.81rem;
+    }
+
+
+    #museum-rank-progress-label {
+        font-size: 0.49rem;
+    }
+
+
+    .museum-collection-chip {
+        min-width: 60px;
+
+        padding:
+            5px 6px;
+    }
+
+
+    .museum-collection-chip span {
+        font-size: 0.42rem;
+    }
+
+
+    .museum-collection-chip strong {
+        font-size: 0.68rem;
+    }
+
+
+    .config-button {
+        flex-basis: 35px;
+
+        width: 35px;
+        height: 35px;
+
+        font-size: 0.96rem;
+    }
+
 }
 
 

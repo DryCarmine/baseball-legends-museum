@@ -9,46 +9,82 @@
 <body>
     <div class="app-container">
 
-        <!-- Barra Superior -->
-        <header class="top-status-bar">
-            <button id="btn-back" class="hidden">◀ Volver</button>
+        <!-- Encabezado de progreso del museo -->
+        <header class="museum-header">
 
-            <div id="user-info" class="user-level">
-                <span class="level-badge">1</span>
-                <span class="username">Novato</span>
-            </div>
+            <section
+                id="museum-rank-card"
+                class="museum-rank-card"
+                aria-label="Rango del museo">
 
-            <div class="stats">
-                <div class="stat-box">⚾ <span id="puntos-trivia">0</span></div>
-                <div class="stat-box">🏆 <span id="trofeos-ar">0/10</span></div>
+                <div
+                    id="museum-rank-icon"
+                    class="museum-rank-icon"
+                    aria-hidden="true">
+                    ⚾
+                </div>
 
-                <!-- Configuración -->
+                <div class="museum-rank-info">
+
+                    <span class="museum-rank-kicker">
+                        RANGO DEL MUSEO
+                    </span>
+
+                    <div class="museum-rank-main">
+                        <strong id="museum-rank-name">
+                            Novato
+                        </strong>
+
+                        <span id="museum-rank-progress-label">
+                            3 piezas para Aficionado
+                        </span>
+                    </div>
+
+                    <div
+                        class="museum-rank-progress"
+                        aria-hidden="true">
+
+                        <div
+                            id="museum-rank-progress-fill"
+                            class="museum-rank-progress-fill">
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <div class="museum-header-actions">
+
+                <div
+                    class="museum-collection-chip"
+                    title="Piezas desbloqueadas">
+
+                    <span>COLECCIÓN</span>
+
+                    <strong id="museum-collection-count">
+                        0 / 36
+                    </strong>
+
+                </div>
+
+
                 <button
                     id="btn-config"
                     class="config-button"
+                    type="button"
                     aria-label="Configuración"
                     title="Configuración">
                     ⚙️
                 </button>
+
             </div>
+
         </header>
-<a
-    href="index.html"
-    style="
-        position: fixed;
-        top: 15px;
-        left: 15px;
-        z-index: 999999;
-        background: rgba(0,0,0,0.75);
-        color: white;
-        padding: 10px 14px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-family: Arial, sans-serif;
-    "
->
-    ← Volver
-</a>
+
+
         <!-- CONTENEDOR DINÁMICO -->
         <main id="app-content" class="main-stage">
             <!-- JavaScript inyectará las vistas aquí -->
@@ -93,6 +129,7 @@
 <script src="js/teams.js"></script>
 <script src="js/trivia.js"></script>
 <script src="js/partidos.js"></script>
+<script src="js/ranks.js?v=1"></script>
 <script src="js/app.js"></script>
 <script src="js/gallery.js"></script>
 </body>
