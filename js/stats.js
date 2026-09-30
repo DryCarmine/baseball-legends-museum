@@ -64,16 +64,110 @@
     }
 
 
-    function getFavoriteTeamId() {
-        const value =
+    function normalizeTeamKey(value) {
+
+        return String(value || "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .replace(/&/g, "and")
+            .replace(/[^a-z0-9]+/g, "_")
+            .replace(/^_+|_+$/g, "");
+    }
+
+
+    function getFavoriteTeamPreference() {
+
+        const storedId =
             localStorage.getItem("favoriteTeam");
 
-        const id =
-            Number(value);
+        let storedName =
+            localStorage.getItem("favoriteTeamName");
 
-        return Number.isFinite(id)
-            ? id
-            : null;
+        let storedLogo =
+            localStorage.getItem("mainTeamLogo");
+
+
+        /*
+         * En la configuración del museo favoriteTeam NO guarda
+         * el ID numérico de MLB. Guarda un slug como:
+         *
+         * arizona_diamondbacks
+         * minnesota_twins
+         * new_york_yankees
+         *
+         * Por eso no debemos convertirlo con Number().
+         */
+        if (
+            storedId &&
+            typeof MLB_TEAMS !== "undefined" &&
+            Array.isArray(MLB_TEAMS)
+        ) {
+
+            const team =
+                MLB_TEAMS.find(
+                    item =>
+                        item.id === storedId
+                );
+
+            if (team) {
+
+                storedName =
+                    storedName ||
+                    team.name;
+
+                storedLogo =
+                    storedLogo ||
+                    team.logo;
+            }
+        }
+
+
+        if (!storedId && !storedName) {
+            return null;
+        }
+
+
+        return {
+            id: storedId || "",
+            name: storedName || "",
+            logo: storedLogo || ""
+        };
+    }
+
+
+    function isFavoriteTeam(team) {
+
+        const favorite =
+            getFavoriteTeamPreference();
+
+        if (!favorite || !team) {
+            return false;
+        }
+
+
+        const favoriteId =
+            normalizeTeamKey(
+                favorite.id
+            );
+
+
+        const favoriteName =
+            normalizeTeamKey(
+                favorite.name
+            );
+
+
+        const apiName =
+            normalizeTeamKey(
+                team.name
+            );
+
+
+        return (
+            (favoriteId && favoriteId === apiName) ||
+            (favoriteName && favoriteName === apiName)
+        );
     }
 
 
@@ -252,10 +346,10 @@
             return;
         }
 
-        const favoriteTeamId =
-            getFavoriteTeamId();
+        const favorite =
+            getFavoriteTeamPreference();
 
-        if (!favoriteTeamId) {
+        if (!favorite) {
             card.classList.add("hidden");
             return;
         }
@@ -267,8 +361,9 @@
             const found =
                 division.teamRecords?.find(
                     record =>
-                        record.team?.id ===
-                        favoriteTeamId
+                        isFavoriteTeam(
+                            record.team
+                        )
                 );
 
             if (found) {
@@ -289,7 +384,10 @@
 
         if (logo) {
             logo.src =
-                teamLogo(favoriteTeamId);
+                favorite.logo ||
+                teamLogo(
+                    favoriteRecord.team?.id
+                );
 
             logo.alt =
                 favoriteRecord.team?.name || "";
@@ -356,13 +454,8 @@
                 </div>
             `;
 
-            renderFavoriteTeam([]);
-
             return;
         }
-
-        const favoriteTeamId =
-            getFavoriteTeamId();
 
         const sortedRecords =
             [...records].sort(
@@ -400,7 +493,7 @@
                                 );
 
                         const favoriteClass =
-                            team.id === favoriteTeamId
+                            isFavoriteTeam(team)
                                 ? "favorite-row"
                                 : "";
 
@@ -463,7 +556,66 @@
                 `;
             }).join("");
 
-        renderFavoriteTeam(records);
+    }
+
+
+    async function loadFavoriteTeamCard() {
+
+        const favorite =
+            getFavoriteTeamPreference();
+
+        const card =
+            $("favorite-team-card");
+
+        if (!card) {
+            return;
+        }
+
+
+        if (!favorite) {
+
+            card.classList.add("hidden");
+
+            return;
+        }
+
+
+        try {
+
+            /*
+             * La tarjeta del equipo favorito se consulta con
+             * AMBAS ligas. Así no desaparece si el usuario
+             * filtra las posiciones por Americana o Nacional.
+             */
+            const url =
+                `${API_BASE}/standings` +
+                `?leagueId=${LEAGUES.AL},${LEAGUES.NL}` +
+                `&season=${selectedSeason}` +
+                `&standingsTypes=regularSeason` +
+                `&hydrate=team,league,division`;
+
+
+            const data =
+                await fetchJson(url);
+
+
+            renderFavoriteTeam(
+                Array.isArray(data?.records)
+                    ? data.records
+                    : []
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "Error cargando equipo favorito:",
+                error
+            );
+
+
+            card.classList.add("hidden");
+        }
     }
 
 
@@ -600,6 +752,13 @@
             "standings-content",
             "Cargando posiciones..."
         );
+
+
+        /*
+         * Se carga en paralelo y es independiente del filtro
+         * Americana / Nacional.
+         */
+        loadFavoriteTeamCard();
 
         const leagueId =
             getLeagueParam();
@@ -749,6 +908,8 @@
     async function loadPanel(panel) {
 
         setSeasonLabels();
+
+        loadFavoriteTeamCard();
 
         if (panel === "standings") {
             await loadStandings();
