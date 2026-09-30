@@ -1,14 +1,14 @@
 /*
  * Baseball Legends Museum
- * Home Run Derby
+ * Home Run Derby v4
  *
- * - 10 lanzamientos por partida
- * - Trofeos persistentes
- * - Mejor puntuación persistente
- * - Recompensa de Puntos del Museo al finalizar
- *
- * Conversión:
- * 10 puntos del Derby = 1 Punto del Museo
+ * Mecánica:
+ * - 10 lanzamientos por partida.
+ * - Cada lanzamiento tiene un windup aleatorio.
+ * - La pelota sólo cruza una vez la zona: si no bateas, es strike.
+ * - Tipos de lanzamiento aleatorios con velocidades diferentes.
+ * - La dificultad escala con rapidez durante la partida.
+ * - Trofeos, mejor puntuación y Puntos del Museo persistentes.
  */
 
 (() => {
@@ -23,8 +23,12 @@
 
   const TOTAL_PITCHES = 10;
   const TRACK_PADDING = 11;
-  const MUSEUM_POINTS_KEY = "museumPoints";
-  const DERBY_SAVE_KEY = "blm_derby2";
+
+  const MUSEUM_POINTS_KEY =
+    "museumPoints";
+
+  const DERBY_SAVE_KEY =
+    "blm_derby2";
 
 
   const TROPHIES = [
@@ -79,6 +83,63 @@
   ];
 
 
+  /*
+   * Los perfiles alteran:
+   * - tiempo de windup
+   * - velocidad de cruce
+   * - curva de aceleración
+   *
+   * La selección es aleatoria en cada lanzamiento.
+   */
+  const PITCH_TYPES = [
+    {
+      id: "fastball",
+      label: "RECTA",
+      weight: 34,
+      windupMin: 650,
+      windupMax: 1500,
+      travelMultiplier: 0.82,
+      motion: "linear"
+    },
+    {
+      id: "changeup",
+      label: "CAMBIO",
+      weight: 23,
+      windupMin: 800,
+      windupMax: 1800,
+      travelMultiplier: 1.14,
+      motion: "changeup"
+    },
+    {
+      id: "quick",
+      label: "QUICK PITCH",
+      weight: 16,
+      windupMin: 240,
+      windupMax: 620,
+      travelMultiplier: 0.76,
+      motion: "linear"
+    },
+    {
+      id: "hesitation",
+      label: "PAUSA",
+      weight: 17,
+      windupMin: 1450,
+      windupMax: 2550,
+      travelMultiplier: 0.86,
+      motion: "burst"
+    },
+    {
+      id: "cutter",
+      label: "CORTADA",
+      weight: 10,
+      windupMin: 520,
+      windupMax: 1350,
+      travelMultiplier: 0.93,
+      motion: "cutter"
+    }
+  ];
+
+
   const state = {
     score: 0,
     sessionHRs: 0,
@@ -101,14 +162,19 @@
 
   let ballX = 0;
   let ballDir = 1;
-  let ballSpeed = 0.004;
 
   let animId = null;
+
   let canSwing = false;
   let swingDone = false;
 
+  let currentPitch = null;
+  let releaseStartedAt = 0;
+
   let destroyed = false;
-  const timers = new Set();
+
+  const timers =
+    new Set();
 
 
   function byId(id) {
@@ -116,7 +182,29 @@
   }
 
 
+  function clamp(value, min, max) {
+    return Math.min(
+      max,
+      Math.max(
+        min,
+        value
+      )
+    );
+  }
+
+
+  function randomBetween(min, max) {
+
+    return (
+      min +
+      Math.random() *
+      (max - min)
+    );
+  }
+
+
   function isMounted() {
+
     return (
       !destroyed &&
       document.body.contains(
@@ -148,6 +236,68 @@
   }
 
 
+  function setPitchStatus(
+    text,
+    mode = "waiting"
+  ) {
+
+    const status =
+      byId(
+        "derby-pitch-status"
+      );
+
+    if (!status) {
+      return;
+    }
+
+
+    status.textContent =
+      text;
+
+
+    status.classList.remove(
+      "waiting",
+      "release",
+      "missed"
+    );
+
+
+    status.classList.add(
+      mode
+    );
+  }
+
+
+  function setBallVisible(visible) {
+
+    const ball =
+      byId("derby-ball");
+
+    if (!ball) {
+      return;
+    }
+
+
+    ball.classList.toggle(
+      "visible",
+      visible
+    );
+  }
+
+
+  function clearTrail() {
+
+    const trail =
+      byId("derby-trail");
+
+    if (trail) {
+
+      trail.style.width =
+        "0";
+    }
+  }
+
+
   function getMuseumPoints() {
 
     const value =
@@ -176,16 +326,16 @@
         )
       );
 
+
     localStorage.setItem(
       MUSEUM_POINTS_KEY,
       String(safeValue)
     );
 
+
     updateMuseumWallet();
 
-    /*
-     * Evento reutilizable para Archivo Visual y otras vistas.
-     */
+
     window.dispatchEvent(
       new CustomEvent(
         "museumPointsChanged",
@@ -196,6 +346,7 @@
         }
       )
     );
+
 
     return safeValue;
   }
@@ -211,6 +362,7 @@
         )
       );
 
+
     return setMuseumPoints(
       getMuseumPoints() +
       safeAmount
@@ -224,6 +376,7 @@
       byId(
         "derby-museum-points"
       );
+
 
     if (wallet) {
 
@@ -244,17 +397,22 @@
           ) || "{}"
         );
 
+
       state.totalHRs =
         Number(data.totalHRs) || 0;
+
 
       state.totalHits =
         Number(data.totalHits) || 0;
 
+
       state.totalScore =
         Number(data.totalScore) || 0;
 
+
       state.bestScore =
         Number(data.bestScore) || 0;
+
 
       state.unlocked =
         Array.isArray(data.unlocked)
@@ -264,7 +422,7 @@
     } catch (error) {
 
       console.warn(
-        "[Derby] No se pudo cargar el progreso:",
+        "[Derby] No se pudo cargar progreso:",
         error
       );
     }
@@ -301,26 +459,34 @@
       return;
     }
 
-    destroyed = false;
+
+    destroyed =
+      false;
+
 
     loadSave();
 
     renderTrophies();
+
     renderPitchDots();
+
     updateHUD();
+
     updateMuseumWallet();
 
+
     const swingButton =
-      byId("derby-btn-swing");
+      byId(
+        "derby-btn-swing"
+      );
+
 
     const restartButton =
-      byId("derby-btn-restart");
+      byId(
+        "derby-btn-restart"
+      );
 
 
-    /*
-     * pointerdown funciona con mouse, touch y stylus
-     * sin registrar touchstart + click por separado.
-     */
     swingButton
       ?.addEventListener(
         "pointerdown",
@@ -339,11 +505,222 @@
   }
 
 
+  function getDifficultyProgress() {
+
+    if (
+      TOTAL_PITCHES <= 1
+    ) {
+      return 1;
+    }
+
+
+    return clamp(
+      state.pitchNum /
+      (TOTAL_PITCHES - 1),
+      0,
+      1
+    );
+  }
+
+
+  function weightedPitchType() {
+
+    const totalWeight =
+      PITCH_TYPES.reduce(
+        (sum, type) =>
+          sum + type.weight,
+        0
+      );
+
+
+    let roll =
+      Math.random() *
+      totalWeight;
+
+
+    for (
+      const type of PITCH_TYPES
+    ) {
+
+      roll -=
+        type.weight;
+
+
+      if (roll <= 0) {
+        return type;
+      }
+    }
+
+
+    return PITCH_TYPES[0];
+  }
+
+
+  function createPitch() {
+
+    const difficulty =
+      getDifficultyProgress();
+
+
+    const type =
+      weightedPitchType();
+
+
+    /*
+     * Escalado bastante más rápido:
+     *
+     * Lanzamiento 1:
+     * ~900 ms de cruce base.
+     *
+     * Lanzamiento 10:
+     * ~410 ms de cruce base.
+     */
+    const baseTravelMs =
+      900 -
+      difficulty *
+      490;
+
+
+    const randomSpeedFactor =
+      randomBetween(
+        0.90,
+        1.08
+      );
+
+
+    const travelMs =
+      clamp(
+        baseTravelMs *
+        type.travelMultiplier *
+        randomSpeedFactor,
+        340,
+        1100
+      );
+
+
+    /*
+     * A medida que avanza la partida,
+     * el windup medio se acorta ligeramente,
+     * pero sigue teniendo mucha variación.
+     */
+    const windupReduction =
+      1 -
+      difficulty *
+      0.18;
+
+
+    let windupMs =
+      randomBetween(
+        type.windupMin,
+        type.windupMax
+      ) *
+      windupReduction;
+
+
+    /*
+     * Evento aleatorio adicional:
+     * ~12% de los lanzamientos tienen
+     * una pausa extra impredecible.
+     */
+    const extraHold =
+      Math.random() < 0.12
+        ? randomBetween(
+            350,
+            900
+          )
+        : 0;
+
+
+    windupMs +=
+      extraHold;
+
+
+    return {
+      ...type,
+
+      windupMs:
+        Math.round(
+          windupMs
+        ),
+
+      travelMs:
+        Math.round(
+          travelMs
+        ),
+
+      direction:
+        Math.random() >
+        0.5
+          ? 1
+          : -1,
+
+      extraHold:
+        extraHold > 0
+    };
+  }
+
+
+  function updateSpeedMeter(
+    pitch,
+    released = false
+  ) {
+
+    const fill =
+      byId(
+        "derby-speed-fill"
+      );
+
+
+    if (!fill) {
+      return;
+    }
+
+
+    if (!released) {
+
+      fill.style.width =
+        "0%";
+
+      return;
+    }
+
+
+    /*
+     * Más rápido = barra más llena.
+     */
+    const normalized =
+      1 -
+      clamp(
+        (
+          pitch.travelMs -
+          340
+        ) /
+        (
+          1100 -
+          340
+        ),
+        0,
+        1
+      );
+
+
+    const pct =
+      22 +
+      normalized *
+      78;
+
+
+    fill.style.width =
+      `${Math.round(pct)}%`;
+  }
+
+
   function nextPitch() {
 
     if (!isMounted()) {
       return;
     }
+
 
     if (
       state.pitchNum >=
@@ -356,44 +733,119 @@
     }
 
 
-    swingDone = false;
-    canSwing = false;
+    swingDone =
+      false;
 
 
-    const progress =
-      state.pitchNum /
-      TOTAL_PITCHES;
+    canSwing =
+      false;
 
 
-    ballSpeed =
-      0.003 +
-      progress * 0.004 +
-      Math.random() * 0.002;
+    currentPitch =
+      createPitch();
 
 
-    const pct =
-      Math.min(
-        100,
-        Math.round(
-          (ballSpeed / 0.009) *
-          100
-        )
+    const swingButton =
+      byId(
+        "derby-btn-swing"
       );
 
 
-    const speedFill =
-      byId("derby-speed-fill");
+    if (swingButton) {
 
-    if (speedFill) {
-      speedFill.style.width =
-        `${pct}%`;
+      swingButton.disabled =
+        true;
+    }
+
+
+    setBallVisible(
+      false
+    );
+
+
+    clearTrail();
+
+
+    updateSpeedMeter(
+      currentPitch,
+      false
+    );
+
+
+    const waitingMessages = [
+      "El pitcher se prepara...",
+      "Mira al plato...",
+      "Ajusta el agarre...",
+      "Esperando el lanzamiento..."
+    ];
+
+
+    setPitchStatus(
+      waitingMessages[
+        Math.floor(
+          Math.random() *
+          waitingMessages.length
+        )
+      ],
+      "waiting"
+    );
+
+
+    /*
+     * En pausas largas damos una pista visual
+     * que NO revela cuándo saldrá la pelota.
+     */
+    if (
+      currentPitch.windupMs >
+      1350
+    ) {
+
+      later(
+        () => {
+
+          if (
+            !swingDone &&
+            currentPitch
+          ) {
+
+            setPitchStatus(
+              currentPitch.extraHold
+                ? "El pitcher sostiene la pelota..."
+                : "Todavía no suelta...",
+              "waiting"
+            );
+          }
+
+        },
+        Math.min(
+          850,
+          currentPitch.windupMs *
+          0.55
+        )
+      );
+    }
+
+
+    later(
+      releasePitch,
+      currentPitch.windupMs
+    );
+  }
+
+
+  function releasePitch() {
+
+    if (
+      !isMounted() ||
+      swingDone ||
+      !currentPitch
+    ) {
+      return;
     }
 
 
     ballDir =
-      Math.random() > 0.5
-        ? 1
-        : -1;
+      currentPitch.direction;
 
 
     ballX =
@@ -402,67 +854,263 @@
         : 1;
 
 
-    const swingButton =
-      byId("derby-btn-swing");
-
-    if (swingButton) {
-      swingButton.disabled =
-        true;
-    }
+    releaseStartedAt =
+      performance.now();
 
 
-    later(
-      () => {
+    canSwing =
+      true;
 
-        canSwing = true;
 
-        if (swingButton) {
-          swingButton.disabled =
-            false;
-        }
-
-        animateBall();
-
-      },
-      400
+    setBallVisible(
+      true
     );
-  }
-
-
-  function animateBall() {
-
-    if (
-      !isMounted() ||
-      swingDone
-    ) {
-      return;
-    }
-
-
-    ballX +=
-      ballDir *
-      ballSpeed;
-
-
-    if (ballX >= 1) {
-      ballX = 1;
-      ballDir = -1;
-    }
-
-
-    if (ballX <= 0) {
-      ballX = 0;
-      ballDir = 1;
-    }
 
 
     renderBall();
 
 
+    updateSpeedMeter(
+      currentPitch,
+      true
+    );
+
+
+    const swingButton =
+      byId(
+        "derby-btn-swing"
+      );
+
+
+    if (swingButton) {
+
+      swingButton.disabled =
+        false;
+    }
+
+
+    setPitchStatus(
+      `⚾ ¡LANZAMIENTO! · ${currentPitch.label}`,
+      "release"
+    );
+
+
     animId =
       requestAnimationFrame(
-        animateBall
+        animatePitch
       );
+  }
+
+
+  function getMotionProgress(
+    pitch,
+    t
+  ) {
+
+    switch (
+      pitch.motion
+    ) {
+
+      case "changeup":
+        /*
+         * Parece salir rápido,
+         * se frena ligeramente al centro.
+         */
+        if (t < 0.48) {
+
+          return (
+            t *
+            0.92
+          );
+        }
+
+        return (
+          0.4416 +
+          (
+            (t - 0.48) /
+            0.52
+          ) *
+          0.5584
+        );
+
+
+      case "burst":
+        /*
+         * Después de la pausa,
+         * acelera con fuerza.
+         */
+        return Math.pow(
+          t,
+          0.78
+        );
+
+
+      case "cutter":
+        /*
+         * Microvariación temporal
+         * para que el paso por el centro
+         * no sea idéntico a una recta.
+         */
+        return clamp(
+          t +
+          Math.sin(
+            t *
+            Math.PI
+          ) *
+          0.035,
+          0,
+          1
+        );
+
+
+      default:
+        return t;
+    }
+  }
+
+
+  function animatePitch(timestamp) {
+
+    if (
+      !isMounted() ||
+      swingDone ||
+      !currentPitch
+    ) {
+      return;
+    }
+
+
+    const elapsed =
+      timestamp -
+      releaseStartedAt;
+
+
+    const rawProgress =
+      clamp(
+        elapsed /
+        currentPitch.travelMs,
+        0,
+        1
+      );
+
+
+    const progress =
+      getMotionProgress(
+        currentPitch,
+        rawProgress
+      );
+
+
+    ballX =
+      currentPitch.direction === 1
+        ? progress
+        : 1 -
+          progress;
+
+
+    renderBall();
+
+
+    if (
+      rawProgress >= 1
+    ) {
+
+      registerMissedPitch();
+
+      return;
+    }
+
+
+    animId =
+      requestAnimationFrame(
+        animatePitch
+      );
+  }
+
+
+  function registerMissedPitch() {
+
+    if (swingDone) {
+      return;
+    }
+
+
+    swingDone =
+      true;
+
+
+    canSwing =
+      false;
+
+
+    if (animId) {
+
+      cancelAnimationFrame(
+        animId
+      );
+
+      animId =
+        null;
+    }
+
+
+    const swingButton =
+      byId(
+        "derby-btn-swing"
+      );
+
+
+    if (swingButton) {
+
+      swingButton.disabled =
+        true;
+    }
+
+
+    state.pitchNum++;
+
+
+    state.pitchResults.push(
+      "strike"
+    );
+
+
+    setBallVisible(
+      false
+    );
+
+
+    clearTrail();
+
+
+    setPitchStatus(
+      "STRIKE · Se te fue el lanzamiento",
+      "missed"
+    );
+
+
+    showResultFlash({
+      emoji: "❌",
+      type: "STRIKE!",
+      color: "#ff4444"
+    });
+
+
+    updateHUD();
+
+    renderPitchDots();
+
+
+    later(
+      () => {
+
+        hideResultFlash();
+
+        nextPitch();
+
+      },
+      950
+    );
   }
 
 
@@ -491,7 +1139,8 @@
       Math.max(
         1,
         track.clientWidth -
-        TRACK_PADDING * 2
+        TRACK_PADDING *
+        2
       );
 
 
@@ -513,6 +1162,7 @@
           px - 40
         )}px`;
 
+
       trail.style.width =
         `${Math.min(
           40,
@@ -523,6 +1173,7 @@
 
       trail.style.left =
         `${px}px`;
+
 
       trail.style.width =
         `${Math.min(
@@ -540,6 +1191,7 @@
 
     event.preventDefault();
 
+
     if (
       !canSwing ||
       swingDone
@@ -548,20 +1200,33 @@
     }
 
 
-    swingDone = true;
-    canSwing = false;
+    swingDone =
+      true;
+
+
+    canSwing =
+      false;
 
 
     if (animId) {
-      cancelAnimationFrame(animId);
-      animId = null;
+
+      cancelAnimationFrame(
+        animId
+      );
+
+      animId =
+        null;
     }
 
 
     const swingButton =
-      byId("derby-btn-swing");
+      byId(
+        "derby-btn-swing"
+      );
+
 
     if (swingButton) {
+
       swingButton.disabled =
         true;
     }
@@ -569,8 +1234,10 @@
 
     const distanceFromCenter =
       Math.abs(
-        ballX - 0.5
-      ) * 2;
+        ballX -
+        0.5
+      ) *
+      2;
 
 
     const accuracy =
@@ -578,7 +1245,9 @@
       distanceFromCenter;
 
 
-    evaluateSwing(accuracy);
+    evaluateSwing(
+      accuracy
+    );
   }
 
 
@@ -697,10 +1366,28 @@
     );
 
 
+    setBallVisible(
+      false
+    );
+
+
+    clearTrail();
+
+
     animateBatter();
+
 
     showResultFlash(
       result
+    );
+
+
+    setPitchStatus(
+      result.type,
+      result.outcome ===
+      "strike"
+        ? "missed"
+        : "release"
     );
 
 
@@ -737,8 +1424,8 @@
 
       },
       result.isHR
-        ? 1800
-        : 1200
+        ? 1500
+        : 950
     );
   }
 
@@ -760,6 +1447,7 @@
     arm.style.transition =
       "all 0.15s ease-out";
 
+
     bat.style.transition =
       "all 0.15s ease-out";
 
@@ -769,25 +1457,30 @@
       "50"
     );
 
+
     arm.setAttribute(
       "y2",
       "30"
     );
+
 
     bat.setAttribute(
       "x1",
       "50"
     );
 
+
     bat.setAttribute(
       "y1",
       "30"
     );
 
+
     bat.setAttribute(
       "x2",
       "65"
     );
+
 
     bat.setAttribute(
       "y2",
@@ -801,6 +1494,7 @@
         arm.style.transition =
           "all 0.3s ease-in";
 
+
         bat.style.transition =
           "all 0.3s ease-in";
 
@@ -810,25 +1504,30 @@
           "10"
         );
 
+
         arm.setAttribute(
           "y2",
           "38"
         );
+
 
         bat.setAttribute(
           "x1",
           "10"
         );
 
+
         bat.setAttribute(
           "y1",
           "38"
         );
 
+
         bat.setAttribute(
           "x2",
           "-2"
         );
+
 
         bat.setAttribute(
           "y2",
@@ -865,6 +1564,7 @@
     const rect =
       track.getBoundingClientRect();
 
+
     const fieldRect =
       field.getBoundingClientRect();
 
@@ -897,13 +1597,15 @@
       isHR
         ? 280
         : 160 +
-          Math.random() * 80;
+          Math.random() *
+          80;
 
 
     const angle =
       -(
         50 +
-        Math.random() * 30
+        Math.random() *
+        30
       );
 
 
@@ -917,7 +1619,8 @@
       Math.cos(radians) *
       distance *
       (
-        Math.random() > 0.5
+        Math.random() >
+        0.5
           ? 1
           : -1
       );
@@ -1030,6 +1733,7 @@
             return;
           }
 
+
           piece.style.transform =
             `translate(` +
             `calc(-50% + ${Math.cos(angle) * distance}px),` +
@@ -1097,20 +1801,24 @@
     const score =
       byId("derby-score");
 
+
     const hrs =
       byId("derby-hrs");
+
 
     const best =
       byId("derby-best");
 
 
     if (score) {
+
       score.textContent =
         state.score;
     }
 
 
     if (hrs) {
+
       hrs.textContent =
         state.sessionHRs;
     }
@@ -1196,6 +1904,7 @@
             trophy.id
           );
 
+
           changed =
             true;
         }
@@ -1270,13 +1979,6 @@
 
   function calculateMuseumReward() {
 
-    /*
-     * Máximo posible:
-     * 1000 score -> 100 puntos del museo.
-     *
-     * Esto mantiene el Derby útil sin romper
-     * la economía del Archivo Visual.
-     */
     return Math.floor(
       state.score /
       10
@@ -1289,6 +1991,28 @@
     if (!isMounted()) {
       return;
     }
+
+
+    canSwing =
+      false;
+
+
+    swingDone =
+      true;
+
+
+    setBallVisible(
+      false
+    );
+
+
+    clearTrail();
+
+
+    setPitchStatus(
+      "Partida terminada",
+      "waiting"
+    );
 
 
     if (
@@ -1323,18 +2047,28 @@
 
 
     const goScore =
-      byId("derby-go-score");
+      byId(
+        "derby-go-score"
+      );
+
 
     const goHRs =
-      byId("derby-go-hrs");
+      byId(
+        "derby-go-hrs"
+      );
+
 
     const goHits =
-      byId("derby-go-hits");
+      byId(
+        "derby-go-hits"
+      );
+
 
     const goEarned =
       byId(
         "derby-go-museum-earned"
       );
+
 
     const goTotal =
       byId(
@@ -1361,12 +2095,14 @@
 
 
     if (goEarned) {
+
       goEarned.textContent =
         state.museumEarnedThisGame;
     }
 
 
     if (goTotal) {
+
       goTotal.textContent =
         getMuseumPoints();
     }
@@ -1388,9 +2124,19 @@
         animId
       );
 
+
       animId =
         null;
     }
+
+
+    timers.forEach(
+      timer =>
+        clearTimeout(timer)
+    );
+
+
+    timers.clear();
 
 
     state.score = 0;
@@ -1410,6 +2156,10 @@
 
     state.museumEarnedThisGame =
       0;
+
+
+    currentPitch =
+      null;
 
 
     byId(
@@ -1432,16 +2182,12 @@
     }
 
 
-    const trail =
-      byId(
-        "derby-trail"
-      );
+    setBallVisible(
+      false
+    );
 
 
-    if (trail) {
-      trail.style.width =
-        "0";
-    }
+    clearTrail();
 
 
     updateHUD();
@@ -1454,11 +2200,16 @@
 
   function destroy() {
 
-    destroyed = true;
+    destroyed =
+      true;
 
-    canSwing = false;
 
-    swingDone = true;
+    canSwing =
+      false;
+
+
+    swingDone =
+      true;
 
 
     if (animId) {
@@ -1466,6 +2217,7 @@
       cancelAnimationFrame(
         animId
       );
+
 
       animId =
         null;

@@ -283,6 +283,54 @@
     pointer-events: none; z-index: 9;
   }
 
+
+  .pitch-status {
+    position: absolute;
+    top: 46px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    min-width: 180px;
+    max-width: calc(100% - 130px);
+    padding: 7px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(0,0,0,0.42);
+    color: rgba(255,255,255,0.78);
+    font-size: 0.64rem;
+    font-weight: 800;
+    text-align: center;
+    letter-spacing: 0.4px;
+    pointer-events: none;
+    transition:
+      color 0.16s ease,
+      border-color 0.16s ease,
+      background 0.16s ease;
+  }
+
+  .pitch-status.release {
+    color: #fff;
+    border-color: rgba(212,175,55,0.55);
+    background: rgba(139,0,0,0.58);
+  }
+
+  .pitch-status.waiting {
+    color: rgba(255,255,255,0.66);
+  }
+
+  .pitch-status.missed {
+    color: #ff7777;
+    border-color: rgba(255,70,70,0.42);
+  }
+
+  #derby-ball {
+    opacity: 0;
+  }
+
+  #derby-ball.visible {
+    opacity: 1;
+  }
+
   .museum-wallet {
     flex-shrink: 0;
     display: flex;
@@ -367,6 +415,13 @@
       <div class="pitch-dots" id="derby-pitch-dots"></div>
     </div>
 
+    <div
+      class="pitch-status waiting"
+      id="derby-pitch-status"
+      aria-live="polite">
+      El pitcher se prepara...
+    </div>
+
     <div class="speed-bar">
       <div class="speed-lbl">Velocidad</div>
       <div class="speed-track"><div class="speed-fill" id="derby-speed-fill" style="width:30%"></div></div>
@@ -430,4 +485,4 @@
 
 </div>
 
-<script src="js/minijuego.js?v=3"></script>
+<script src="js/minijuego.js?v=4"></script>
