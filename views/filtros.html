@@ -270,301 +270,1223 @@
 <script>
 (function() {
 
-  // ============================================================
-  // CARPETA DE VIDEOS
-  // Cualquier archivo .mp4 / .webm / .mov / .ogg colocado en
-  // assets/videos/ se detecta automáticamente, sin hardcodear.
-  // ============================================================
   const VIDEOS_FOLDER = 'assets/videos/';
   const VIDEO_EXTS = ['.mp4', '.webm', '.mov', '.ogg'];
 
-  // ============================================================
-  // MÓDULO PRINCIPAL
-  // ============================================================
+  /*
+   * Si la vista se vuelve a abrir dentro de la SPA,
+   * detenemos el loop anterior antes de crear uno nuevo.
+   */
+  if (
+    window.FV &&
+    typeof window.FV.destroy === 'function'
+  ) {
+    window.FV.destroy();
+  }
+
   const FV = window.FV = {
 
     currentFilter: 'none',
     intensity: 50,
+
     animFrame: null,
+    lastRenderTime: 0,
+    targetFrameInterval: 1000 / 30,
+
     video: null,
     canvas: null,
     ctx: null,
+
+    pixelCanvas: null,
+    pixelCtx: null,
+
     videos: [],
     currentIndex: 0,
 
+    destroyed: false,
+
+
     async init() {
-      this.video  = document.getElementById('vid-source');
-      this.canvas = document.getElementById('vid-canvas');
-      this.ctx    = this.canvas.getContext('2d', { willReadFrequently: true });
+
+      this.destroyed = false;
+
+      this.video =
+        document.getElementById('vid-source');
+
+      this.canvas =
+        document.getElementById('vid-canvas');
+
+      if (!this.video || !this.canvas) {
+        console.error(
+          '[filtros] No se encontró video o canvas.'
+        );
+        return;
+      }
+
+      this.ctx =
+        this.canvas.getContext(
+          '2d',
+          { willReadFrequently: true }
+        );
+
+      this.pixelCanvas =
+        document.createElement('canvas');
+
+      this.pixelCtx =
+        this.pixelCanvas.getContext('2d');
 
       this.applyStoredTeamTheme();
 
-      this.videos = await this.scanVideosFolder(VIDEOS_FOLDER);
+      this.bindVideoEvents();
+
+      this.videos =
+        await this.scanVideosFolder(
+          VIDEOS_FOLDER
+        );
+
+      if (
+        this.destroyed ||
+        !document.body.contains(this.canvas)
+      ) {
+        return;
+      }
 
       if (!this.videos.length) {
+
         this.showEmptyState();
-        this.loop();
+
         return;
       }
 
       this.loadVideoByIndex(0);
+
       this.loop();
     },
 
-    // ── Aplicar tema del equipo favorito guardado ─────────────
-    applyStoredTeamTheme() {
-      try {
-        if (typeof aplicarTemaEquipo === 'function' && typeof MLB_TEAMS !== 'undefined') {
-          const teamId = localStorage.getItem('favoriteTeam');
-          const team = MLB_TEAMS.find(t => t.id === teamId);
-          if (team) aplicarTemaEquipo(team);
-        }
-      } catch (e) {
-        console.warn('[filtros] No se pudo aplicar tema del equipo:', e);
+
+    destroy() {
+
+      this.destroyed = true;
+
+      if (this.animFrame) {
+
+        cancelAnimationFrame(
+          this.animFrame
+        );
+
+        this.animFrame = null;
+      }
+
+      if (this.video) {
+
+        try {
+          this.video.pause();
+        } catch (_) {}
+
+        this.video.removeAttribute('src');
+
+        try {
+          this.video.load();
+        } catch (_) {}
       }
     },
 
-    // ── Detectar los videos disponibles ───────────────────────
-    async scanVideosFolder(folder) {
-      const found = new Set();
 
-      // 1) Manifiesto data/videos.json
-      try {
-        const res = await fetch('data/videos.json', { cache: 'no-store' });
-        if (res.ok) {
-          const list = await res.json();
-          list.forEach(name => found.add(name));
-        } else {
-          console.warn('[filtros] data/videos.json respondió', res.status);
+    bindVideoEvents() {
+
+      this.video.addEventListener(
+        'error',
+        () => {
+
+          const label =
+            document.getElementById(
+              'filter-label'
+            );
+
+          if (label) {
+            label.textContent =
+              'ERROR DE VIDEO';
+          }
+
+          console.error(
+            '[filtros] Error cargando:',
+            this.video.currentSrc ||
+            this.video.src
+          );
         }
-      } catch (e) {
-        console.warn('[filtros] No se pudo leer data/videos.json:', e);
-      }
+      );
 
-      // 2) Respaldo: listado de directorio (si el servidor lo soporta)
-      if (!found.size) {
-        try {
-          const res = await fetch(folder, { cache: 'no-store' });
-          if (res.ok) {
-            const html = await res.text();
-            const doc = new DOMParser().parseFromString(html, 'text/html');
-            Array.from(doc.querySelectorAll('a')).forEach(a => {
-              const href = a.getAttribute('href') || '';
-              const clean = href.split('?')[0];
-              if (VIDEO_EXTS.some(ext => clean.toLowerCase().endsWith(ext))) {
-                found.add(decodeURIComponent(clean.replace(/^\.?\//, '')));
+
+      this.video.addEventListener(
+        'loadedmetadata',
+        () => {
+
+          this.resizeCanvas(true);
+
+        }
+      );
+    },
+
+
+    applyStoredTeamTheme() {
+
+      try {
+
+        if (
+          typeof aplicarTemaEquipo === 'function' &&
+          typeof MLB_TEAMS !== 'undefined'
+        ) {
+
+          const teamId =
+            localStorage.getItem(
+              'favoriteTeam'
+            );
+
+          const team =
+            MLB_TEAMS.find(
+              t => t.id === teamId
+            );
+
+          if (team) {
+            aplicarTemaEquipo(team);
+          }
+        }
+
+      } catch (error) {
+
+        console.warn(
+          '[filtros] No se pudo aplicar tema del equipo:',
+          error
+        );
+      }
+    },
+
+
+    async scanVideosFolder(folder) {
+
+      const found =
+        new Set();
+
+
+      /*
+       * Ruta principal:
+       * el manifiesto data/videos.json.
+       */
+      try {
+
+        const response =
+          await fetch(
+            'data/videos.json',
+            { cache: 'no-store' }
+          );
+
+        if (response.ok) {
+
+          const list =
+            await response.json();
+
+          if (Array.isArray(list)) {
+
+            list.forEach(name => {
+
+              if (
+                typeof name === 'string' &&
+                VIDEO_EXTS.some(
+                  ext =>
+                    name
+                      .toLowerCase()
+                      .endsWith(ext)
+                )
+              ) {
+
+                found.add(name);
               }
             });
           }
-        } catch (e) {
-          console.warn('[filtros] No se pudo listar el directorio de videos:', e);
+
+        } else {
+
+          console.warn(
+            '[filtros] data/videos.json respondió',
+            response.status
+          );
+        }
+
+      } catch (error) {
+
+        console.warn(
+          '[filtros] No se pudo leer data/videos.json:',
+          error
+        );
+      }
+
+
+      /*
+       * Respaldo:
+       * intenta leer un listado de directorio
+       * si el servidor lo permite.
+       */
+      if (!found.size) {
+
+        try {
+
+          const response =
+            await fetch(
+              folder,
+              { cache: 'no-store' }
+            );
+
+          if (response.ok) {
+
+            const html =
+              await response.text();
+
+            const doc =
+              new DOMParser()
+                .parseFromString(
+                  html,
+                  'text/html'
+                );
+
+            Array
+              .from(
+                doc.querySelectorAll('a')
+              )
+              .forEach(link => {
+
+                const href =
+                  link.getAttribute('href') ||
+                  '';
+
+                const clean =
+                  href.split('?')[0];
+
+                if (
+                  VIDEO_EXTS.some(
+                    ext =>
+                      clean
+                        .toLowerCase()
+                        .endsWith(ext)
+                  )
+                ) {
+
+                  found.add(
+                    decodeURIComponent(
+                      clean.replace(
+                        /^\.?\//,
+                        ''
+                      )
+                    )
+                  );
+                }
+              });
+          }
+
+        } catch (error) {
+
+          console.warn(
+            '[filtros] No se pudo listar la carpeta:',
+            error
+          );
         }
       }
 
-      if (!found.size) {
-        console.error('[filtros] No se detectaron videos. Verifica que exista '
-          + 'data/videos.json con los nombres de archivo, y que la app se esté '
-          + 'sirviendo por http:// (no abriendo el HTML directamente con file://).');
+
+      return Array
+        .from(found)
+        .map(
+          (filename, index) => ({
+            id: `vid_${index}`,
+            title:
+              this.filenameToTitle(
+                filename
+              ),
+            src:
+              folder + filename
+          })
+        );
+    },
+
+
+    filenameToTitle(filename) {
+
+      const base =
+        filename.replace(
+          /\.[^/.]+$/,
+          ''
+        );
+
+      return (
+        base
+          .replace(/[_-]+/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim()
+          .replace(
+            /\b\w/g,
+            char =>
+              char.toUpperCase()
+          ) ||
+        'Video'
+      );
+    },
+
+
+    updateNav() {
+
+      const total =
+        this.videos.length;
+
+      const current =
+        total
+          ? this.videos[
+              this.currentIndex
+            ]
+          : null;
+
+
+      const title =
+        document.getElementById(
+          'video-title'
+        );
+
+      const counter =
+        document.getElementById(
+          'video-counter'
+        );
+
+
+      if (title) {
+
+        title.textContent =
+          current
+            ? `🎬 ${current.title}`
+            : '🎬 Sin videos';
       }
 
-      return Array.from(found).map((filename, i) => ({
-        id: 'vid_' + i,
-        title: this.filenameToTitle(filename),
-        src: folder + filename
-      }));
+
+      if (counter) {
+
+        counter.textContent =
+          total
+            ? `${this.currentIndex + 1} / ${total}`
+            : '0 / 0';
+      }
+
+
+      const prev =
+        document.getElementById(
+          'btn-prev'
+        );
+
+      const next =
+        document.getElementById(
+          'btn-next'
+        );
+
+
+      if (prev) {
+
+        prev.disabled =
+          !total ||
+          this.currentIndex === 0;
+      }
+
+
+      if (next) {
+
+        next.disabled =
+          !total ||
+          this.currentIndex ===
+            total - 1;
+      }
     },
 
-    // ── Convertir nombre de archivo en título legible ─────────
-    filenameToTitle(filename) {
-      const base = filename.replace(/\.[^/.]+$/, '');
-      return base
-        .replace(/[_-]+/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim()
-        .replace(/\b\w/g, c => c.toUpperCase()) || 'Video';
-    },
 
-    // ── Actualizar barra de navegación ────────────────────────
-    updateNav() {
-      const total = this.videos.length;
-      const title = total ? this.videos[this.currentIndex].title : 'Sin videos';
-      document.getElementById('video-title').textContent = '🎬 ' + title;
-      document.getElementById('video-counter').textContent = total
-        ? `${this.currentIndex + 1} / ${total}`
-        : '0 / 0';
-
-      const prev = document.getElementById('btn-prev');
-      const next = document.getElementById('btn-next');
-      if (prev) prev.disabled = !total || this.currentIndex === 0;
-      if (next) next.disabled = !total || this.currentIndex === total - 1;
-    },
-
-    // ── Cargar video por índice ──────────────────────────────
     loadVideoByIndex(index) {
-      if (!this.videos.length) return;
-      this.currentIndex = Math.max(0, Math.min(index, this.videos.length - 1));
-      const v = this.videos[this.currentIndex];
-      this.loadVideo(v);
+
+      if (!this.videos.length) {
+        return;
+      }
+
+      this.currentIndex =
+        Math.max(
+          0,
+          Math.min(
+            index,
+            this.videos.length - 1
+          )
+        );
+
+      this.loadVideo(
+        this.videos[
+          this.currentIndex
+        ]
+      );
+
       this.updateNav();
     },
 
-    // ── Navegación anterior/siguiente ─────────────────────────
+
     nextVideo() {
-      this.loadVideoByIndex(this.currentIndex + 1);
+
+      this.loadVideoByIndex(
+        this.currentIndex + 1
+      );
     },
+
 
     prevVideo() {
-      this.loadVideoByIndex(this.currentIndex - 1);
+
+      this.loadVideoByIndex(
+        this.currentIndex - 1
+      );
     },
 
-    // ── Estado vacío (sin videos en la carpeta) ───────────────
+
     showEmptyState() {
+
       this.updateNav();
-      document.getElementById('filter-label').textContent = 'SIN VIDEOS';
-      document.getElementById('video-title').textContent = '🎬 Sin videos';
+
+      const label =
+        document.getElementById(
+          'filter-label'
+        );
+
+      if (label) {
+        label.textContent =
+          'SIN VIDEOS';
+      }
     },
 
-    // ── Cargar video ─────────────────────────────────────────
-    loadVideo(v) {
-      this.video.src = v.src;
+
+    loadVideo(videoData) {
+
+      if (!this.video) {
+        return;
+      }
+
+      this.video.pause();
+
+      this.video.src =
+        videoData.src;
+
       this.video.load();
-      this.video.play().catch(() => {});
+
+      this.video
+        .play()
+        .catch(
+          error => {
+
+            console.warn(
+              '[filtros] El navegador no inició autoplay:',
+              error
+            );
+          }
+        );
     },
 
-    // ── Cambiar filtro ────────────────────────────────────────
+
     setFilter(name) {
-      this.currentFilter = name;
 
-      document.querySelectorAll('.filter-btn').forEach(b => {
-        b.classList.toggle('active', b.dataset.filter === name);
-      });
+      const allowed =
+        [
+          'none',
+          'blur',
+          'pixel',
+          'thermal',
+          'saturate'
+        ];
 
-      const btnOrig = document.getElementById('btn-original');
-      btnOrig.classList.toggle('active', name === 'none');
+      this.currentFilter =
+        allowed.includes(name)
+          ? name
+          : 'none';
+
+
+      document
+        .querySelectorAll(
+          '.filter-btn'
+        )
+        .forEach(button => {
+
+          button.classList.toggle(
+            'active',
+            button.dataset.filter ===
+              this.currentFilter
+          );
+        });
+
+
+      const original =
+        document.getElementById(
+          'btn-original'
+        );
+
+      if (original) {
+
+        original.classList.toggle(
+          'active',
+          this.currentFilter === 'none'
+        );
+      }
+
 
       const labels = {
-        none:     'SIN FILTRO',
-        blur:     '🌫️ DESENFOQUE',
-        pixel:    '🟦 PIXELADO',
-        thermal:  '🌡️ CÁMARA TÉRMICA',
-        saturate: '🎨 ALTA SATURACIÓN'
+        none:
+          'SIN FILTRO',
+
+        blur:
+          '🌫️ DESENFOQUE',
+
+        pixel:
+          '🟦 PIXELADO',
+
+        thermal:
+          '🌡️ CÁMARA TÉRMICA',
+
+        saturate:
+          '🎨 ALTA SATURACIÓN'
       };
-      document.getElementById('filter-label').textContent = labels[name] || 'SIN FILTRO';
+
+
+      const label =
+        document.getElementById(
+          'filter-label'
+        );
+
+      if (label) {
+
+        label.textContent =
+          labels[
+            this.currentFilter
+          ];
+      }
     },
 
-    // ── Cambiar intensidad ────────────────────────────────────
-    setIntensity(val) {
-      this.intensity = parseInt(val);
-      document.getElementById('intensity-val').textContent = val + '%';
+
+    setIntensity(value) {
+
+      const parsed =
+        Number(value);
+
+      this.intensity =
+        Math.max(
+          1,
+          Math.min(
+            100,
+            Number.isFinite(parsed)
+              ? parsed
+              : 50
+          )
+        );
+
+
+      const label =
+        document.getElementById(
+          'intensity-val'
+        );
+
+      if (label) {
+
+        label.textContent =
+          `${Math.round(
+            this.intensity
+          )}%`;
+      }
     },
 
-    // ── Loop de renderizado ───────────────────────────────────
+
+    resizeCanvas(force = false) {
+
+      if (
+        !this.video ||
+        !this.canvas ||
+        !this.canvas.parentElement ||
+        this.video.readyState < 1
+      ) {
+        return;
+      }
+
+
+      const vw =
+        this.video.videoWidth ||
+        320;
+
+      const vh =
+        this.video.videoHeight ||
+        240;
+
+
+      const stage =
+        this.canvas.parentElement;
+
+
+      if (
+        !stage.clientWidth ||
+        !stage.clientHeight
+      ) {
+        return;
+      }
+
+
+      const ratio =
+        Math.min(
+          stage.clientWidth / vw,
+          stage.clientHeight / vh
+        );
+
+
+      const width =
+        Math.max(
+          1,
+          Math.floor(
+            vw * ratio
+          )
+        );
+
+      const height =
+        Math.max(
+          1,
+          Math.floor(
+            vh * ratio
+          )
+        );
+
+
+      if (
+        force ||
+        this.canvas.width !== width ||
+        this.canvas.height !== height
+      ) {
+
+        this.canvas.width =
+          width;
+
+        this.canvas.height =
+          height;
+      }
+    },
+
+
     loop() {
-      const render = () => {
-        this.animFrame = requestAnimationFrame(render);
-        if (!this.video || this.video.readyState < 2) return;
 
-        const vw = this.video.videoWidth  || 320;
-        const vh = this.video.videoHeight || 240;
+      const render =
+        timestamp => {
 
-        const stage = this.canvas.parentElement;
-        const ratio = Math.min(stage.clientWidth / vw, stage.clientHeight / vh);
-        this.canvas.width  = Math.floor(vw * ratio);
-        this.canvas.height = Math.floor(vh * ratio);
+          if (
+            this.destroyed ||
+            !this.canvas ||
+            !document.body.contains(
+              this.canvas
+            )
+          ) {
 
-        this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+            this.destroy();
 
-        if (this.currentFilter !== 'none') {
-          this.applyFilter(this.currentFilter);
-        }
-      };
-      render();
+            return;
+          }
+
+
+          this.animFrame =
+            requestAnimationFrame(
+              render
+            );
+
+
+          if (
+            timestamp -
+              this.lastRenderTime <
+            this.targetFrameInterval
+          ) {
+            return;
+          }
+
+
+          this.lastRenderTime =
+            timestamp;
+
+
+          if (
+            !this.video ||
+            this.video.readyState < 2
+          ) {
+            return;
+          }
+
+
+          this.resizeCanvas();
+
+
+          const width =
+            this.canvas.width;
+
+          const height =
+            this.canvas.height;
+
+
+          if (
+            width <= 0 ||
+            height <= 0
+          ) {
+            return;
+          }
+
+
+          this.ctx.filter =
+            'none';
+
+          this.ctx.drawImage(
+            this.video,
+            0,
+            0,
+            width,
+            height
+          );
+
+
+          if (
+            this.currentFilter !==
+            'none'
+          ) {
+
+            this.applyFilter(
+              this.currentFilter
+            );
+          }
+        };
+
+
+      this.animFrame =
+        requestAnimationFrame(
+          render
+        );
     },
 
-    // ── Aplicar filtro al ImageData ───────────────────────────
+
     applyFilter(filter) {
-      const t = this.intensity / 100;
-      const w = this.canvas.width;
-      const h = this.canvas.height;
+
+      const intensity =
+        this.intensity / 100;
+
+      const width =
+        this.canvas.width;
+
+      const height =
+        this.canvas.height;
+
 
       switch (filter) {
-        case 'blur':     this.filterBlur(t);           break;
-        case 'pixel':    this.filterPixel(t, w, h);    break;
-        case 'thermal':  this.filterThermal(t, w, h);  break;
-        case 'saturate': this.filterSaturate(t, w, h); break;
+
+        case 'blur':
+
+          this.filterBlur(
+            intensity,
+            width,
+            height
+          );
+
+          break;
+
+
+        case 'pixel':
+
+          this.filterPixel(
+            intensity,
+            width,
+            height
+          );
+
+          break;
+
+
+        case 'thermal':
+
+          this.filterThermal(
+            intensity,
+            width,
+            height
+          );
+
+          break;
+
+
+        case 'saturate':
+
+          this.filterSaturate(
+            intensity,
+            width,
+            height
+          );
+
+          break;
       }
     },
 
-    // ── FILTRO 1: Desenfoque ──────────────────────────────────
-    filterBlur(t) {
-      const radius = Math.max(1, Math.round(t * 12));
-      this.ctx.filter = `blur(${radius}px)`;
-      this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
-      this.ctx.filter = 'none';
+
+    // FILTRO 1: DESENFOQUE
+    filterBlur(
+      intensity,
+      width,
+      height
+    ) {
+
+      const radius =
+        Math.max(
+          1,
+          Math.round(
+            intensity * 12
+          )
+        );
+
+
+      this.ctx.save();
+
+      this.ctx.filter =
+        `blur(${radius}px)`;
+
+
+      this.ctx.drawImage(
+        this.video,
+        0,
+        0,
+        width,
+        height
+      );
+
+
+      this.ctx.restore();
     },
 
-    // ── FILTRO 2: Pixelado ────────────────────────────────────
-    filterPixel(t, w, h) {
-      const size = Math.max(2, Math.round(t * 30));
-      const tmp  = document.createElement('canvas');
-      tmp.width  = Math.max(1, Math.floor(w / size));
-      tmp.height = Math.max(1, Math.floor(h / size));
-      const tc   = tmp.getContext('2d');
-      tc.drawImage(this.canvas, 0, 0, tmp.width, tmp.height);
-      this.ctx.imageSmoothingEnabled = false;
-      this.ctx.drawImage(tmp, 0, 0, w, h);
-      this.ctx.imageSmoothingEnabled = true;
+
+    // FILTRO 2: PIXELADO
+    filterPixel(
+      intensity,
+      width,
+      height
+    ) {
+
+      const size =
+        Math.max(
+          2,
+          Math.round(
+            intensity * 30
+          )
+        );
+
+
+      const smallWidth =
+        Math.max(
+          1,
+          Math.floor(
+            width / size
+          )
+        );
+
+
+      const smallHeight =
+        Math.max(
+          1,
+          Math.floor(
+            height / size
+          )
+        );
+
+
+      if (
+        this.pixelCanvas.width !==
+        smallWidth
+      ) {
+
+        this.pixelCanvas.width =
+          smallWidth;
+      }
+
+
+      if (
+        this.pixelCanvas.height !==
+        smallHeight
+      ) {
+
+        this.pixelCanvas.height =
+          smallHeight;
+      }
+
+
+      this.pixelCtx.clearRect(
+        0,
+        0,
+        smallWidth,
+        smallHeight
+      );
+
+
+      this.pixelCtx.drawImage(
+        this.canvas,
+        0,
+        0,
+        smallWidth,
+        smallHeight
+      );
+
+
+      this.ctx.save();
+
+      this.ctx.imageSmoothingEnabled =
+        false;
+
+
+      this.ctx.drawImage(
+        this.pixelCanvas,
+        0,
+        0,
+        smallWidth,
+        smallHeight,
+        0,
+        0,
+        width,
+        height
+      );
+
+
+      this.ctx.restore();
     },
 
-    // ── FILTRO 3: Cámara Térmica ──────────────────────────────
-    filterThermal(t, w, h) {
-      const imgData = this.ctx.getImageData(0, 0, w, h);
-      const d = imgData.data;
-      for (let i = 0; i < d.length; i += 4) {
-        const lum = 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
-        let r, g, b;
+
+    // FILTRO 3: CÁMARA TÉRMICA
+    filterThermal(
+      intensity,
+      width,
+      height
+    ) {
+
+      const imageData =
+        this.ctx.getImageData(
+          0,
+          0,
+          width,
+          height
+        );
+
+
+      const data =
+        imageData.data;
+
+
+      for (
+        let i = 0;
+        i < data.length;
+        i += 4
+      ) {
+
+        const lum =
+          0.299 * data[i] +
+          0.587 * data[i + 1] +
+          0.114 * data[i + 2];
+
+
+        let red;
+        let green;
+        let blue;
+
+
         if (lum < 85) {
-          r = 0;
-          g = Math.round(lum * 3);
-          b = 255 - Math.round(lum * 3);
+
+          red = 0;
+
+          green =
+            Math.round(
+              lum * 3
+            );
+
+          blue =
+            255 -
+            Math.round(
+              lum * 3
+            );
+
         } else if (lum < 170) {
-          const n = (lum - 85) / 85;
-          r = Math.round(n * 255);
-          g = 255;
-          b = 0;
+
+          const normalized =
+            (lum - 85) / 85;
+
+          red =
+            Math.round(
+              normalized * 255
+            );
+
+          green = 255;
+
+          blue = 0;
+
         } else {
-          const n = (lum - 170) / 85;
-          r = 255;
-          g = Math.round(255 - n * 255);
-          b = 0;
+
+          const normalized =
+            (lum - 170) / 85;
+
+          red = 255;
+
+          green =
+            Math.round(
+              255 -
+              normalized * 255
+            );
+
+          blue = 0;
         }
-        d[i]   = Math.round(d[i]   * (1 - t) + r * t);
-        d[i+1] = Math.round(d[i+1] * (1 - t) + g * t);
-        d[i+2] = Math.round(d[i+2] * (1 - t) + b * t);
+
+
+        data[i] =
+          Math.round(
+            data[i] *
+              (1 - intensity) +
+            red *
+              intensity
+          );
+
+
+        data[i + 1] =
+          Math.round(
+            data[i + 1] *
+              (1 - intensity) +
+            green *
+              intensity
+          );
+
+
+        data[i + 2] =
+          Math.round(
+            data[i + 2] *
+              (1 - intensity) +
+            blue *
+              intensity
+          );
       }
-      this.ctx.putImageData(imgData, 0, 0);
+
+
+      this.ctx.putImageData(
+        imageData,
+        0,
+        0
+      );
     },
 
-    // ── FILTRO 4: Alta Saturación ─────────────────────────────
-    filterSaturate(t, w, h) {
-      const imgData = this.ctx.getImageData(0, 0, w, h);
-      const d = imgData.data;
-      const factor = 1 + t * 4;
-      for (let i = 0; i < d.length; i += 4) {
-        const r = d[i], g = d[i+1], b = d[i+2];
-        const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-        d[i]   = Math.min(255, Math.max(0, Math.round(lum + (r - lum) * factor)));
-        d[i+1] = Math.min(255, Math.max(0, Math.round(lum + (g - lum) * factor)));
-        d[i+2] = Math.min(255, Math.max(0, Math.round(lum + (b - lum) * factor)));
+
+    // FILTRO 4: ALTA SATURACIÓN
+    filterSaturate(
+      intensity,
+      width,
+      height
+    ) {
+
+      const imageData =
+        this.ctx.getImageData(
+          0,
+          0,
+          width,
+          height
+        );
+
+
+      const data =
+        imageData.data;
+
+
+      const factor =
+        1 +
+        intensity * 4;
+
+
+      for (
+        let i = 0;
+        i < data.length;
+        i += 4
+      ) {
+
+        const red =
+          data[i];
+
+        const green =
+          data[i + 1];
+
+        const blue =
+          data[i + 2];
+
+
+        const lum =
+          0.299 * red +
+          0.587 * green +
+          0.114 * blue;
+
+
+        data[i] =
+          Math.min(
+            255,
+            Math.max(
+              0,
+              Math.round(
+                lum +
+                (red - lum) *
+                  factor
+              )
+            )
+          );
+
+
+        data[i + 1] =
+          Math.min(
+            255,
+            Math.max(
+              0,
+              Math.round(
+                lum +
+                (green - lum) *
+                  factor
+              )
+            )
+          );
+
+
+        data[i + 2] =
+          Math.min(
+            255,
+            Math.max(
+              0,
+              Math.round(
+                lum +
+                (blue - lum) *
+                  factor
+              )
+            )
+          );
       }
-      this.ctx.putImageData(imgData, 0, 0);
+
+
+      this.ctx.putImageData(
+        imageData,
+        0,
+        0
+      );
     }
   };
 
-  // ── Arrancar cuando el DOM esté listo ──────────────────────
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => FV.init());
+
+  /*
+   * En vistas inyectadas dentro de la SPA,
+   * DOMContentLoaded suele haber ocurrido ya.
+   */
+  if (
+    document.readyState ===
+    'loading'
+  ) {
+
+    document.addEventListener(
+      'DOMContentLoaded',
+      () => FV.init(),
+      { once: true }
+    );
+
   } else {
+
     FV.init();
   }
 
