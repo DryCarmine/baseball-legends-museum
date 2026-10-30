@@ -183,6 +183,89 @@
             grid-column: 3;
         }
 
+
+        #history-button {
+            grid-column: 1 / span 3;
+            background: rgba(92, 65, 20, 0.96);
+        }
+
+        #team-history-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 200000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.78);
+        }
+
+        #team-history-modal.open {
+            display: flex;
+        }
+
+        .history-card {
+            width: min(100%, 520px);
+            max-height: min(78vh, 720px);
+            overflow-y: auto;
+            padding: 22px;
+            background: linear-gradient(145deg, #101a35, #080d1d);
+            color: #f5f1df;
+            border: 1px solid #d4af37;
+            border-radius: 18px;
+            box-shadow: 0 18px 55px rgba(0,0,0,.55);
+        }
+
+        .history-card h2 {
+            margin: 0 42px 6px 0;
+            color: #e4c45b;
+            font-size: 23px;
+        }
+
+        .history-kicker {
+            margin: 0 0 16px;
+            color: #c5b987;
+            font-size: 12px;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+        }
+
+        .history-close {
+            float: right;
+            width: 38px;
+            height: 38px;
+            border: 1px solid rgba(212,175,55,.7);
+            border-radius: 10px;
+            background: rgba(0,0,0,.35);
+            color: #fff;
+            font-size: 22px;
+            cursor: pointer;
+        }
+
+        #team-history-body p {
+            color: #eee9d7;
+            font-size: 14px;
+            line-height: 1.55;
+        }
+
+        #team-history-body h3 {
+            margin: 18px 0 8px;
+            color: #e4c45b;
+            font-size: 15px;
+        }
+
+        #team-history-body ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        #team-history-body li {
+            margin: 8px 0;
+            color: #e9e5d7;
+            font-size: 13px;
+            line-height: 1.45;
+        }
+
         @media (max-width: 380px) {
             #status {
                 max-width: 56%;
@@ -278,7 +361,25 @@
             📸 Foto
         </button>
 
+        <button
+            id="history-button"
+            class="ar-control-button"
+            type="button"
+            disabled
+        >
+            📜 Historia del equipo
+        </button>
+
     </div>
+
+    <section id="team-history-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="team-history-title">
+        <article class="history-card">
+            <button id="history-close" class="history-close" type="button" aria-label="Cerrar historia">×</button>
+            <p class="history-kicker">Archivo histórico · Baseball Legends Museum</p>
+            <h2 id="team-history-title">Historia del equipo</h2>
+            <div id="team-history-body"></div>
+        </article>
+    </section>
 
 
     <a-scene
@@ -318,7 +419,7 @@
                 <a-gltf-model
                     id="model-brewers"
                     src="assets/models/Brewers.glb?v=3"
-                    position="0 -0.50 0"
+                    position="-33.59 -6.02 4.77"
                     rotation="0 0 0"
                     scale="0.12 0.12 0.12">
                 </a-gltf-model>
@@ -337,7 +438,7 @@
                 <a-gltf-model
                     id="model-cubs"
                     src="assets/models/ChicagoCubs.glb?v=3"
-                    position="0 -0.50 0"
+                    position="-33.59 -6.02 4.77"
                     rotation="0 0 0"
                     scale="0.12 0.12 0.12">
                 </a-gltf-model>
@@ -375,7 +476,7 @@
                 <a-gltf-model
                     id="model-braves"
                     src="assets/models/Braves.glb?v=3"
-                    position="0 -0.50 0"
+                    position="-33.59 -6.02 4.77"
                     rotation="0 0 0"
                     scale="0.12 0.12 0.12">
                 </a-gltf-model>
@@ -394,7 +495,7 @@
                 <a-gltf-model
                     id="model-dbacks"
                     src="assets/models/ArizonaDiamonds.glb?v=3"
-                    position="0 -0.50 0"
+                    position="-33.59 -6.02 4.77"
                     rotation="0 0 0"
                     scale="0.12 0.12 0.12">
                 </a-gltf-model>
@@ -404,7 +505,7 @@
     </a-scene>
 
 
-    <script src="js/arfinal.js?v=fix3"></script>
+    <script src="js/arfinal.js?v=history1"></script>
 
 </body>
 </html>
