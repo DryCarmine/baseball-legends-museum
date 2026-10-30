@@ -114,21 +114,20 @@ console.log("✅ arfinal.js cargado");
             const capturePhoto =
                 document.getElementById("capture-photo");
 
+            const showHistory =
+                document.getElementById("show-history");
 
-            const historyButton =
-                document.getElementById("history-button");
-
-            const historyModal =
-                document.getElementById("team-history-modal");
+            const historyPanel =
+                document.getElementById("history-panel");
 
             const historyTitle =
-                document.getElementById("team-history-title");
+                document.getElementById("history-title");
 
-            const historyBody =
-                document.getElementById("team-history-body");
+            const historyContent =
+                document.getElementById("history-content");
 
-            const historyClose =
-                document.getElementById("history-close");
+            const closeHistory =
+                document.getElementById("close-history");
 
 
             if (!scene) {
@@ -228,6 +227,34 @@ console.log("✅ arfinal.js cargado");
 
             }
 
+
+            const teamHistories = {
+                brewers: [
+                    ["Orígenes", "La franquicia nació en 1969 como Seattle Pilots. Después de una sola temporada, se trasladó a Milwaukee y pasó a llamarse Brewers en 1970."],
+                    ["Una nueva etapa", "Milwaukee se incorporó a la Liga Americana en 1970. En 1998, el equipo pasó a la Liga Nacional como parte de la expansión y reorganización de las Grandes Ligas."],
+                    ["Momentos destacados", "Los Brewers conquistaron el banderín de la Liga Americana en 1982 y alcanzaron la Serie Mundial. En 2011 lograron su primera serie de postemporada ganada desde aquel cambio de formato."]
+                ],
+                cubs: [
+                    ["Orígenes", "Los Cubs descienden de los Chicago White Stockings, uno de los clubes fundadores de la Liga Nacional en 1876. El nombre Cubs se consolidó a comienzos del siglo XX."],
+                    ["La espera", "El equipo ganó las Series Mundiales de 1907 y 1908. Después comenzó una larga sequía de campeonatos que se convirtió en parte central de su identidad."],
+                    ["El regreso a la cima", "En 2016, Chicago venció a Cleveland en una Serie Mundial de siete juegos y consiguió su primer campeonato desde 1908."]
+                ],
+                twins: [
+                    ["Orígenes", "La franquicia comenzó en 1901 como Washington Senators, uno de los equipos originales de la Liga Americana."],
+                    ["Traslado a Minnesota", "En 1961, el club se mudó a Minneapolis–Saint Paul y adoptó el nombre Minnesota Twins, en referencia a las ciudades gemelas."],
+                    ["Campeonatos", "Los Twins ganaron la Serie Mundial en 1987 y 1991. Ambos títulos llegaron después de que la franquicia se estableciera en Minnesota."]
+                ],
+                braves: [
+                    ["Una franquicia histórica", "Los Braves tienen sus raíces en Boston en 1876 y forman parte de la historia más antigua del béisbol profesional de Grandes Ligas."],
+                    ["De Boston a Atlanta", "El equipo se trasladó a Milwaukee en 1953 y luego a Atlanta en 1966, donde adoptó su identidad actual."],
+                    ["Éxitos", "La franquicia ganó la Serie Mundial en 1914, 1957, 1995 y 2021. Su etapa de dominio en la década de 1990 incluyó numerosos títulos divisionales."]
+                ],
+                dbacks: [
+                    ["Nacimiento", "Los Arizona Diamondbacks se incorporaron a las Grandes Ligas como equipo de expansión en 1998, con sede en Phoenix."],
+                    ["Un comienzo extraordinario", "En apenas su cuarta temporada, Arizona ganó la Serie Mundial de 2001 al derrotar a los New York Yankees en siete juegos."],
+                    ["Más historia", "Los Diamondbacks volvieron a la Serie Mundial en 2023. Su recorrido confirmó que una franquicia relativamente joven también podía construir una historia memorable."]
+                ]
+            };
 
             let activeTeam = null;
 
@@ -339,9 +366,9 @@ console.log("✅ arfinal.js cargado");
                         !enabled;
                 }
 
-
-                if (historyButton) {
-                    historyButton.disabled = !enabled;
+                if (showHistory) {
+                    showHistory.disabled =
+                        !enabled;
                 }
 
             }
@@ -540,123 +567,6 @@ console.log("✅ arfinal.js cargado");
                 }
 
             }
-
-
-            const TEAM_HISTORIES = {
-                brewers: {
-                    subtitle: "De Seattle a Milwaukee",
-                    intro: "La franquicia nació en 1969 como Seattle Pilots. Tras una sola temporada en Washington? No: en Seattle, el club se trasladó a Milwaukee en 1970 y adoptó el nombre Brewers, en honor a la larga tradición cervecera de la ciudad.",
-                    facts: [
-                        ["1969", "Debutó como Seattle Pilots en la Liga Americana."],
-                        ["1970", "Se mudó a Milwaukee y pasó a llamarse Brewers."],
-                        ["1982", "Ganó el banderín de la Liga Americana y disputó su primera Serie Mundial."],
-                        ["1998", "Se incorporó a la Liga Nacional, dentro de la División Central."],
-                        ["Identidad", "Su nombre y guante con pelota representan la cultura beisbolera de Milwaukee."]
-                    ]
-                },
-                cubs: {
-                    subtitle: "Una de las franquicias fundadoras de la Liga Nacional",
-                    intro: "Los Cubs forman parte de la historia más antigua del béisbol profesional. La franquicia comenzó en 1876 y atravesó distintas denominaciones antes de consolidar el nombre Chicago Cubs. Wrigley Field y sus aficionados son parte esencial de su identidad.",
-                    facts: [
-                        ["1876", "La franquicia comenzó como parte de la temporada inaugural de la Liga Nacional."],
-                        ["1907–1908", "Conquistó títulos consecutivos de Serie Mundial."],
-                        ["1916", "Se instaló en el estadio que hoy conocemos como Wrigley Field."],
-                        ["2016", "Volvió a ganar la Serie Mundial, poniendo fin a una espera de 108 años."],
-                        ["Tradición", "El Wrigley Field, el letrero rojo y la hiedra de sus jardines son símbolos del club."]
-                    ]
-                },
-                twins: {
-                    subtitle: "De Washington a Minnesota",
-                    intro: "La historia de los Twins comenzó en Washington, D. C., como Senators. En 1961 la franquicia se trasladó a Minnesota y adoptó el nombre Twins, en referencia a las ciudades gemelas de Minneapolis y St. Paul.",
-                    facts: [
-                        ["1901", "La franquicia comenzó como Washington Senators, en el primer año de la Liga Americana."],
-                        ["1924", "Washington ganó su primera Serie Mundial."],
-                        ["1961", "La franquicia se mudó a Minnesota y nació el nombre Twins."],
-                        ["1987 y 1991", "Ganó dos Series Mundiales representando a Minnesota."],
-                        ["Identidad", "El nombre Twins celebra la conexión entre Minneapolis y St. Paul."]
-                    ]
-                },
-                braves: {
-                    subtitle: "Una franquicia con varias ciudades y generaciones",
-                    intro: "Los Braves son una de las franquicias más antiguas del béisbol profesional. Su historia pasó por Boston y Milwaukee antes de establecerse en Atlanta en 1966. A lo largo de más de un siglo, el club ha construido una identidad reconocible en cada una de esas ciudades.",
-                    facts: [
-                        ["1871", "La franquicia nació en Boston como Boston Red Stockings."],
-                        ["1914", "Los Boston Braves protagonizaron la remontada conocida como Miracle Braves y ganaron la Serie Mundial."],
-                        ["1953", "La franquicia se trasladó a Milwaukee y se convirtió en Milwaukee Braves."],
-                        ["1966", "Llegó a Atlanta y adoptó su actual sede."],
-                        ["1995 y 2021", "Ganó la Serie Mundial ya como Atlanta Braves; también había sido campeón en Milwaukee en 1957."]
-                    ]
-                },
-                dbacks: {
-                    subtitle: "Una nueva franquicia que llegó rápido a la cima",
-                    intro: "Arizona Diamondbacks se incorporó a las Grandes Ligas en 1998 como equipo de expansión. En apenas su cuarta temporada alcanzó la Serie Mundial y derrotó a los New York Yankees en una de las finales más recordadas de comienzos del siglo XXI.",
-                    facts: [
-                        ["1998", "Debutó en MLB como franquicia de expansión en la Liga Nacional."],
-                        ["2001", "Ganó su primera Serie Mundial, apenas cuatro temporadas después de su debut."],
-                        ["2001", "La Serie Mundial se decidió en el séptimo juego frente a los Yankees."],
-                        ["2007", "Volvió a ganar la División Oeste de la Liga Nacional y alcanzó la Serie de Campeonato."],
-                        ["2023", "Regresó a la Serie Mundial y obtuvo el banderín de la Liga Nacional."]
-                    ]
-                }
-            };
-
-            function openTeamHistory() {
-                if (!canUseControls() || !activeTeam || !historyModal) return;
-
-                const history = TEAM_HISTORIES[activeTeam.id];
-                if (!history) return;
-
-                historyTitle.textContent = activeTeam.name;
-                historyBody.replaceChildren();
-
-                const subtitle = document.createElement("p");
-                subtitle.className = "history-kicker";
-                subtitle.textContent = history.subtitle;
-                historyBody.appendChild(subtitle);
-
-                const intro = document.createElement("p");
-                intro.textContent = history.intro;
-                historyBody.appendChild(intro);
-
-                const heading = document.createElement("h3");
-                heading.textContent = "Momentos clave";
-                historyBody.appendChild(heading);
-
-                const list = document.createElement("ul");
-                history.facts.forEach(([year, detail]) => {
-                    const item = document.createElement("li");
-                    const strong = document.createElement("strong");
-                    strong.textContent = `${year} — `;
-                    item.append(strong, document.createTextNode(detail));
-                    list.appendChild(item);
-                });
-                historyBody.appendChild(list);
-
-                historyModal.classList.add("open");
-                historyModal.setAttribute("aria-hidden", "false");
-                if (historyClose) historyClose.focus();
-            }
-
-            function closeTeamHistory() {
-                if (!historyModal) return;
-                historyModal.classList.remove("open");
-                historyModal.setAttribute("aria-hidden", "true");
-            }
-
-            if (historyButton) {
-                historyButton.addEventListener("click", openTeamHistory);
-            }
-            if (historyClose) {
-                historyClose.addEventListener("click", closeTeamHistory);
-            }
-            if (historyModal) {
-                historyModal.addEventListener("click", event => {
-                    if (event.target === historyModal) closeTeamHistory();
-                });
-            }
-            document.addEventListener("keydown", event => {
-                if (event.key === "Escape") closeTeamHistory();
-            });
 
 
             function chooseActiveTeam() {
@@ -1056,6 +966,67 @@ console.log("✅ arfinal.js cargado");
                 );
 
             }
+
+
+            // =============================================
+            // HISTORIA DEL EQUIPO
+            // =============================================
+
+            function closeTeamHistory() {
+                if (!historyPanel) return;
+                historyPanel.classList.remove("open");
+                historyPanel.setAttribute("aria-hidden", "true");
+            }
+
+            function openTeamHistory() {
+                if (!canUseControls() || !historyPanel || !historyTitle || !historyContent) {
+                    return;
+                }
+
+                const sections = teamHistories[activeTeam.id];
+                if (!sections) return;
+
+                historyTitle.textContent = activeTeam.name;
+                historyContent.replaceChildren();
+
+                sections.forEach(([heading, paragraph]) => {
+                    const sectionTitle = document.createElement("p");
+                    const strong = document.createElement("strong");
+                    strong.textContent = heading;
+                    sectionTitle.appendChild(strong);
+
+                    const body = document.createElement("p");
+                    body.textContent = paragraph;
+
+                    historyContent.appendChild(sectionTitle);
+                    historyContent.appendChild(body);
+                });
+
+                historyPanel.classList.add("open");
+                historyPanel.setAttribute("aria-hidden", "false");
+            }
+
+            if (showHistory) {
+                showHistory.addEventListener("click", openTeamHistory);
+            }
+
+            if (closeHistory) {
+                closeHistory.addEventListener("click", closeTeamHistory);
+            }
+
+            if (historyPanel) {
+                historyPanel.addEventListener("click", event => {
+                    if (event.target === historyPanel) {
+                        closeTeamHistory();
+                    }
+                });
+            }
+
+            document.addEventListener("keydown", event => {
+                if (event.key === "Escape") {
+                    closeTeamHistory();
+                }
+            });
 
 
             // =============================================
